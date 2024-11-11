@@ -1,59 +1,19 @@
 import os
-from flask import Flask, request, redirect, url_for
+from flask import Flask, jsonify
 import requests
 from requests.auth import HTTPBasicAuth
 
 app = Flask(__name__)
 
+# Load environment variables
 CLIENT_ID = os.getenv("WEB_APP_CLIENT_ID")
 CLIENT_SECRET = os.getenv("WEB_APP_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-REFRESH_TOKEN = os.getenv("WEB_APP_REFRESH_TOKEN")  # Optional
-breakpoint()
+REFRESH_TOKEN = os.getenv("WEB_APP_REFRESH_TOKEN")  # Ensure this is set
 
-@app.route('/')
-def home():
-    # If a refresh token is already set, use it to get a new access token
-    if REFRESH_TOKEN:
-        print("refresh token")
-        return redirect(url_for('refresh_access_token'))
-    # Otherwise, initiate the authorization code flow
-    auth_url = (
-        "https://www.reddit.com/api/v1/authorize?"
-        f"client_id={CLIENT_ID}&response_type=code&state=random&"
-        f"redirect_uri={REDIRECT_URI}&duration=permanent&scope=identity"
-    )
-    return redirect(auth_url)
+if not REFRESH_TOKEN:
+    raise EnvironmentError("WEB_APP_REFRESH_TOKEN is required as an environment variable.")
 
-@app.route('/callback')
-def callback():
-    # Retrieve the authorization code
-    code = request.args.get('code')
-    if not code:
-        return "Error: No code provided", 400
-
-    # Exchange the code for an access token and refresh token
-    token_response = requests.post(
-        "https://www.reddit.com/api/v1/access_token",
-        auth=HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET),
-        data={
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": REDIRECT_URI
-        },
-        headers={"User-Agent": "YourAppName/1.0"}
-    )
-
-    if token_response.status_code == 200:
-        tokens = token_response.json()
-        access_token = tokens.get('access_token')
-        refresh_token = tokens.get('refresh_token')
-        return f"Access Token: {access_token}<br>Refresh Token: {refresh_token}"
-    else:
-        return f"Error: {token_response.json()}", 400
-
-@app.route('/refresh_access_token')
-def refresh_access_token():
+def get_new_access_token():
     # Use the refresh token to get a new access token
     token_response = requests.post(
         "https://www.reddit.com/api/v1/access_token",
@@ -65,12 +25,72 @@ def refresh_access_token():
         headers={"User-Agent": "YourAppName/1.0"}
     )
 
+    # Check if the token request was successful
     if token_response.status_code == 200:
         tokens = token_response.json()
-        access_token = tokens.get('access_token')
-        return f"New Access Token: {access_token}"
+        return tokens.get('access_token')
     else:
-        return f"Error refreshing token: {token_response.json()}", 400
+        raise RuntimeError(f"Failed to refresh access token: {token_response.json()}")
+
+def get_post_text(subreddit, post_id, access_token):
+    # Fetch the full post data from the /comments endpoint
+    url = f"https://oauth.reddit.com/r/{subreddit}/comments/{post_id}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "User-Agent": "YourAppName/1.0"
+    }
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        # Extract the title, selftext, and url of the post
+        post_data = response.json()[0]["data"]["children"][0]["data"]
+        return {
+            "title": post_data.get("title"),
+            "url": f"https://www.reddit.com{post_data.get('permalink')}",
+            "text": post_data.get("selftext")
+        }
+    else:
+        return None  # Return None if the request fails
+
+@app.route('/search_factorio', methods=['GET'])
+def search_factorio():
+    
+    # Get a new access token using the refresh token
+    access_token = get_new_access_token()
+    
+    # Define the search URL and parameters for recent posts with "Gleba" in the title
+    search_url = "https://oauth.reddit.com/r/factorio/search"
+    params = {
+        "q": "title:Gleba",
+        "sort": "new",
+        "t": "day",
+        "restrict_sr": "1"
+    }
+
+    # Make the request to Reddit's search API with the access token
+    search_response = requests.get(
+        search_url,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "User-Agent": "YourAppName/1.0"
+        },
+        params=params
+    )
+
+    # For each post, retrieve the title, url, and full text using the post ID
+    if search_response.status_code == 200:
+        posts = search_response.json().get("data", {}).get("children", [])
+        detailed_posts = []
+        
+        for post in posts:
+            post_id = post["data"]["id"]
+            post_data = get_post_text("factorio", post_id, access_token)
+            if post_data:
+                detailed_posts.append(post_data)
+
+        return jsonify(detailed_posts)
+    else:
+        return jsonify({"error": "Failed to retrieve posts", "details": search_response.json()}), search_response.status_code
 
 if __name__ == '__main__':
     app.run(debug=True)
