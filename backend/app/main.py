@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -54,17 +54,30 @@ def get_post_text(subreddit, post_id, access_token):
 
 @app.route('/search_factorio', methods=['GET'])
 def search_factorio():
+    """
+    Search for recent posts in the Factorio subreddit with a specific term in the title.
+    The search term can be provided as a query parameter, defaulting to "Gleba".
+
+    Example usage:
+    - /search_factorio?term=modding
+    - /search_factorio?term=blueprint
+    """
+
+    # SEARCH PARAMS
+    search_term = request.args.get('term', 'Gleba')
+    sort_by = request.args.get('sort', 'top')
+    restrict_day_range = request.args.get('days', '1')
     
     # Get a new access token using the refresh token
     access_token = get_new_access_token()
     
-    # Define the search URL and parameters for recent posts with "Gleba" in the title
+    # Define the search URL and parameters using the search term
     search_url = "https://oauth.reddit.com/r/factorio/search"
     params = {
-        "q": "title:Gleba",
-        "sort": "new",
-        "t": "day",
-        "restrict_sr": "1"
+        "q": f"title:{search_term}",
+        "sort": sort_by,
+        "t": "day", # keep time interval fixed as "day" for simplicity
+        "restrict_sr": restrict_day_range
     }
 
     # Make the request to Reddit's search API with the access token
