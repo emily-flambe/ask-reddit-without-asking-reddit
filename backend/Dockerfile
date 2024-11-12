@@ -1,18 +1,38 @@
-# Use a Python base image
-FROM python:3.10-slim
+# Dockerfile
 
-# Set the working directory in the container
+# Use an official Python image as the base
+FROM python:3.12-slim
+
+# Define build arguments to pass environment variables from docker-compose.yml
+ARG FLASK_APP
+ARG FLASK_ENV
+ARG CLIENT_ID
+ARG CLIENT_SECRET
+ARG REFRESH_TOKEN
+ARG DATABASE_URL
+
+# Set environment variables for runtime
+ENV FLASK_APP=$FLASK_APP
+ENV FLASK_ENV=$FLASK_ENV
+ENV CLIENT_ID=$CLIENT_ID
+ENV CLIENT_SECRET=$CLIENT_SECRET
+ENV REFRESH_TOKEN=$REFRESH_TOKEN
+ENV DATABASE_URL=$DATABASE_URL
+
+# Create a working directory in the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt .
+# Copy requirements.txt first to leverage Docker's cache if requirements haven't changed
+COPY requirements.txt /app/
+
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the source code into the container
-COPY src/ .
+# Copy the rest of the application code
+COPY . /app
 
-# Expose port 5000 for the web server
+# Expose the port the Flask app will run on
 EXPOSE 5000
 
-# Set the default command to run the app
-CMD ["python", "app.py"]
+# Run the Flask application
+CMD ["flask", "run", "--host=0.0.0.0"]

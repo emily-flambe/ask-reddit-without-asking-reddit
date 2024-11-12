@@ -1,0 +1,30 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .  # Docker will use the Dockerfile in the current directory
+    environment:
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - DATABASE_URL=postgresql://reddit_user:password@db/reddit_data  # PostgreSQL connection URL
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env  # Specify the .env file to load environment variables from
+    depends_on:
+      - db  # Ensure the database is started before the app
+
+  db:
+    image: postgres:13  # Use the PostgreSQL 13 image
+    environment:
+      - POSTGRES_USER=reddit_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=reddit_data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
+
+volumes:
+  postgres_data:  # Define a named volume to persist data

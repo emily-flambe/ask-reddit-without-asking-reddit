@@ -1,8 +1,15 @@
 # reddit-data
 
-# Backend
+# Usage
 
-### Project Structure
+```shell
+cd backend
+source .env
+source .venv/bin/activate
+flask run
+```
+
+# Project Structure
 
 ```shell
 app/

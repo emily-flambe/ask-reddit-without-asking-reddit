@@ -1,8 +1,9 @@
 from .db_setup import db
 from datetime import datetime
 
+
 class RedditPost(db.Model):
-    __tablename__ = 'reddit_posts'
+    __tablename__ = "reddit_posts"
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
