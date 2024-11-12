@@ -2,6 +2,7 @@
 # This module will contain the logic to fetch data from Reddit and save it to the database. We will use the requests library to make HTTP requests to the Reddit API. We will also use the RedditPost model to save the data to the database.
 
 import logging
+import re
 import requests
 from .config import Config
 from .database_models import RedditPost
@@ -25,34 +26,51 @@ def get_access_token():
 def fetch_reddit_data(search_term):
     access_token = get_access_token()
     url = "https://oauth.reddit.com/r/factorio/search"
-    params = {
-        "q": f"title:{search_term}",
-        "sort": "new",
-        "t": "day",
-        "restrict_sr": "1",
-    }
+    params = {"q": f"title:{search_term}", "sort": "new", "t": "day", "restrict_sr": "1"}
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "User-Agent": "RedditDataCollector/1.0",
+        "User-Agent": "RedditDataCollector/1.0"
     }
 
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()  # Will raise an HTTPError for bad responses
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching data from Reddit: {e}")
+    # Send request to Reddit API
+    response = requests.get(url, headers=headers, params=params)
+
+    # Check for successful response
+    if response.status_code != 200:
+        print(f"Failed to fetch data: {response.status_code}")
         return []
 
+    # Parse response data
     posts = response.json().get("data", {}).get("children", [])
-    return [
+
+    # Filter posts to only include those with a score >= 5
+    filtered_posts = [
         {
             "title": post["data"]["title"],
             "url": post["data"]["url"],
             "text": post["data"].get("selftext", ""),
             "reddit_id": post["data"]["id"],
+            "score": post["data"]["score"]
         }
         for post in posts
+        if post["data"].get("score", 0) >= 5
     ]
+
+    # Limit to top 20 posts based on score
+    filtered_posts = sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[:20]
+
+    return filtered_posts
+
+def sanitize_reddit_posts(posts):
+    """ 
+    Remove any URLs and special characters from the "texn" field of the Reddit posts.
+    """
+    for post in posts:
+        # Remove URLs from the text
+        post["text"] = re.sub(r"http\S+", "", post["text"])
+        # Remove special characters
+        post["text"] = re.sub(r"[^a-zA-Z0-9 %.,!?\"']", "", post["text"])
+    return posts
 
 
 def save_to_database(posts):
