@@ -1,8 +1,23 @@
 # reddit-data
 
-https://github.com/reddit-archive/reddit/wiki/OAuth2-Quick-Start-Example#first-steps
+# Backend
 
-# Authenticate to Reddit API (OAuth2)
+Application Factory (__init__.py):
+
+The create_app function in __init__.py sets up the Flask app, loads configurations, initializes the database, and registers the main blueprint from routes.py.
+Entry Point (main.py):
+
+main.py calls create_app() and runs the Flask application.
+Routes and API Logic (routes.py and data_collector.py):
+
+The routes in routes.py call the data collection and storage functions in data_collector.py.
+data_collector.py handles interactions with the Reddit API and stores collected data in the database defined in models.py.
+Database (models.py and db/):
+
+Data is stored and managed through SQLAlchemy, with models defined in models.py.
+
+# Authentication to Reddit API (OAuth2)
+
 ```shell
 
 source .env
