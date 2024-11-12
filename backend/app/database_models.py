@@ -1,4 +1,4 @@
-from .db import db
+from .db_setup import db
 from datetime import datetime
 
 class RedditPost(db.Model):
@@ -10,3 +10,6 @@ class RedditPost(db.Model):
     text = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     reddit_id = db.Column(db.String(50), unique=True)
+
+    def __repr__(self):
+        return f"<RedditPost(title={self.title}, url={self.url})>"

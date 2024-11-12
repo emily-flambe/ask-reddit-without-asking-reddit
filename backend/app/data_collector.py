@@ -1,10 +1,9 @@
 # data_collector.py
 # This module will contain the logic to fetch data from Reddit and save it to the database. We will use the requests library to make HTTP requests to the Reddit API. We will also use the RedditPost model to save the data to the database.
-
 import requests
 from .config import Config
-from .models import RedditPost
-from .db import db
+from .database_models import RedditPost
+from .db_setup import db
 from requests.auth import HTTPBasicAuth
 
 def get_access_token():
@@ -32,12 +31,12 @@ def fetch_reddit_data(search_term):
 
 def save_to_database(posts):
     for post in posts:
-        if not RedditPost.query.filter_by(reddit_id=post["id"]).first():  # Avoid duplicates
+        if not RedditPost.query.filter_by(reddit_id=post.get("id")).first():  # Avoid duplicates
             new_post = RedditPost(
                 title=post["title"],
                 url=post["url"],
                 text=post["text"],
-                reddit_id=post["id"]
+                reddit_id=post.get("id")
             )
             db.session.add(new_post)
     db.session.commit()
