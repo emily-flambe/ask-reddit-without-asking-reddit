@@ -5,6 +5,7 @@ function RedditForm() {
     const [query, setQuery] = useState("");
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
+    const [posts, setPosts] = useState([]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,10 +18,20 @@ function RedditForm() {
 
             if (response.status === 200) {
                 setSummary(response.data.summary);
+                setPosts(response.data.posts);
             }
         } catch (err) {
+            console.error(err);
             setError("Failed to fetch data from the backend.");
         }
+    };
+
+    const truncateText = (text, wordLimit) => {
+        const words = text.split(' ');
+        if (words.length > wordLimit) {
+            return words.slice(0, wordLimit).join(' ') + '...';
+        }
+        return text;
     };
 
     return (
@@ -43,6 +54,27 @@ function RedditForm() {
                 <div className="summary-box">
                     <h2>Summary:</h2>
                     <p>{summary}</p>
+                    <br />
+                    <h3>Posts included in summary:</h3>
+                    <br />
+                    <div>
+                        {posts.map((post, index) => (
+                            <div key={index} className="mb-4">
+                                <a
+                                    href={post.url}
+                                    className="text-blue-500 underline"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {post.title}
+                                </a>
+                                <p className="mt-2 text-gray-700">
+                                    {truncateText(post.text, 50)}
+                                </p>
+                                <br />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

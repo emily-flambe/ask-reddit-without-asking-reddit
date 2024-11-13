@@ -135,4 +135,4 @@ def ask_reddit():
     # Generate summary
     summary = summarizer.summarize(query, text_to_summarize)
     
-    return jsonify({"status": "success", "summary": summary})
+    return jsonify({"status": "success", "summary": summary, "posts": sanitized_posts})
