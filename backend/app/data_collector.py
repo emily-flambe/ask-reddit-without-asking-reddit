@@ -26,7 +26,7 @@ def get_access_token():
 def fetch_reddit_data(search_term):
     access_token = get_access_token()
     url = "https://oauth.reddit.com/r/factorio/search"
-    params = {"q": f"title:{search_term}", "sort": "new", "t": "day", "restrict_sr": "7"}
+    params = {"q": f"title:{search_term}", "sort": "top", "t": "month", "restrict_sr": "true"}
     headers = {
         "Authorization": f"Bearer {access_token}",
         "User-Agent": "RedditDataCollector/1.0"
@@ -43,7 +43,7 @@ def fetch_reddit_data(search_term):
     # Parse response data
     posts = response.json().get("data", {}).get("children", [])
 
-    # Filter posts to only include those with a score >= 5
+    # Filter posts to only include those with a score >= 5 and with more than 10 characters of text
     filtered_posts = [
         {
             "title": post["data"]["title"],
@@ -54,7 +54,11 @@ def fetch_reddit_data(search_term):
         }
         for post in posts
         if post["data"].get("score", 0) >= 5
+        and len(post["data"].get("selftext", "")) > 10
     ]
+    
+    logging.info(f"Found {len(filtered_posts)} posts for search term: {search_term}")
+    logging.debug(filtered_posts)
 
     # Limit to top 20 posts based on score
     filtered_posts = sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[:20]
