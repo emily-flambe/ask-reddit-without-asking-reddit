@@ -26,7 +26,7 @@ def get_access_token():
 def fetch_reddit_data(search_term):
     access_token = get_access_token()
     url = "https://oauth.reddit.com/r/factorio/search"
-    params = {"q": f"title:{search_term}", "sort": "new", "t": "day", "restrict_sr": "1"}
+    params = {"q": f"title:{search_term}", "sort": "new", "t": "day", "restrict_sr": "7"}
     headers = {
         "Authorization": f"Bearer {access_token}",
         "User-Agent": "RedditDataCollector/1.0"
