@@ -92,3 +92,21 @@ curl -X POST https://www.reddit.com/api/v1/access_token \
   -d "redirect_uri=https://www.google.com" \
   -H "User-Agent: YourAppName/1.0"
 ```
+
+
+# Fantasy Land 
+
+Or maybe fantasies, who knows.
+
+I should make these into Github issues lol
+
+- [ ] Make the frontend *aesthetic*
+- [ ] In addition to providing a summary, also list titles (hyperlinked) of the top posts that are relevant to the query
+- [ ] Group the top posts by topic
+- [ ] Add more features to the frontend (search parameters: subreddit, time frame, karma minimum, sort by controversial, etc.)
+- [ ] Add a scheduler to collect data at regular intervals
+- [ ] Add more features to the data collection (e.g. collect comments, more metadata)
+- [ ] Add data analysis and visualization
+- [ ] Set up my own LLM with ollama
+- [ ] Add a feature that fetches posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post (This could be an entirely different project: Reddit Image Search)
+- [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)

@@ -112,16 +112,27 @@ def summarize_post():
 
 
 
-@main.route("/ask_reddit", methods=["GET"])
+@main.route("/ask_reddit", methods=["POST"])
 def ask_reddit():
-    query = request.args.get("q")
+    """
+    Endpoint to ask a question and summarize Reddit posts related to that question.
+    """
+    data = request.json
+    query = data.get("q")
+    
     if not query:
-         return jsonify({"status": "fail", "message": "/ask_reddit requires a question, you donkey"}), 400
+        return jsonify({"status": "fail", "message": "/ask_reddit requires a question, you donkey"}), 400
+    
+    # Fetch and save Reddit data based on the query
     posts = fetch_reddit_data(query)
     save_to_database(posts)
+    
+    # Sanitize and prepare text for summarization
     sanitized_posts = sanitize_reddit_posts(posts)
     sanitized_post_texts = [post['text'] for post in sanitized_posts]
     text_to_summarize = '\n\n'.join(sanitized_post_texts)
+    
+    # Generate summary
     summary = summarizer.summarize(query, text_to_summarize)
-    breakpoint()
+    
     return jsonify({"status": "success", "summary": summary})
