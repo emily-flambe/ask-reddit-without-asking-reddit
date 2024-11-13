@@ -1,10 +1,11 @@
 import requests
 from flask import Blueprint, jsonify, request
-from .data_collector import get_access_token, fetch_reddit_data, save_to_database
+from .data_collector import get_access_token, fetch_reddit_data, sanitize_reddit_posts, save_to_database
 from .database_models import RedditPost
+from .chatgpt_summarizer import ChatGPTSummarizer
 
-main = Blueprint("main", __name__)
-
+main = Blueprint('main', __name__)
+summarizer = ChatGPTSummarizer()
 
 @main.route("/", methods=["GET"])
 def hello():
@@ -91,3 +92,36 @@ def get_saved_posts():
         {"title": post.title, "url": post.url, "text": post.text} for post in posts
     ]
     return jsonify(result)
+
+
+@main.route('/summarize_post', methods=['POST'])
+def summarize_post():
+    # Assuming the client sends a JSON payload with post_id
+    post_id = request.json.get('post_id')
+
+    # Retrieve the post from the database by ID
+    post = RedditPost.query.get(post_id)
+    if not post:
+        return jsonify({"status": "fail", "message": "Post not found"}), 404
+
+    # Send the post text to ChatGPT for summarization
+    summary = summarizer.summarize(post.text)
+
+    # Return the summary
+    return jsonify({"status": "success", "summary": summary})
+
+
+
+@main.route("/ask_reddit", methods=["GET"])
+def ask_reddit():
+    query = request.args.get("q")
+    if not query:
+         return jsonify({"status": "fail", "message": "/ask_reddit requires a question, you donkey"}), 400
+    posts = fetch_reddit_data(query)
+    save_to_database(posts)
+    sanitized_posts = sanitize_reddit_posts(posts)
+    sanitized_post_texts = [post['text'] for post in sanitized_posts]
+    text_to_summarize = '\n\n'.join(sanitized_post_texts)
+    summary = summarizer.summarize(query, text_to_summarize)
+    breakpoint()
+    return jsonify({"status": "success", "summary": summary})
