@@ -43,7 +43,7 @@ def fetch_reddit_data(search_term):
     # Parse response data
     posts = response.json().get("data", {}).get("children", [])
 
-    # Filter posts to only include those with a score >= 5 and with more than 10 characters of text
+    # Filter posts to only include those with a score >= 5 and with more than 10 characters of text (excluding any URLs)  
     filtered_posts = [
         {
             "title": post["data"]["title"],
@@ -54,7 +54,7 @@ def fetch_reddit_data(search_term):
         }
         for post in posts
         if post["data"].get("score", 0) >= 5
-        and len(post["data"].get("selftext", "")) > 10
+        and len(re.sub(r"http\S+", "", post["data"].get("selftext", ""))) > 10
     ]
     
     logging.info(f"Found {len(filtered_posts)} posts for search term: {search_term}")
