@@ -24,8 +24,12 @@ class ChatGPTSummarizer:
         data = {
             "model": "gpt-4o-mini-2024-07-18",
             "messages": [
-                {"role": "system", "content": "You are summarizing posts from multiple Reddit users."},
-                {"role": "user", "content": prompt}],
+                {
+                    "role": "system",
+                    "content": "You are summarizing posts from multiple Reddit users.",
+                },
+                {"role": "user", "content": prompt},
+            ],
             "temperature": 0.5,
         }
 

@@ -7,6 +7,7 @@ import requests
 from .config import Config
 from .database_models import RedditPost
 from .db_setup import db
+from datetime import datetime, timezone
 from requests.auth import HTTPBasicAuth
 
 logging.basicConfig(level=logging.DEBUG)
@@ -23,13 +24,57 @@ def get_access_token():
     return response.json().get("access_token")
 
 
-def fetch_reddit_data(search_term):
+def fetch_reddit_data(query_params):
+    """
+    Query the Reddit API for posts based on the search term and other parameters.
+    Parameters (included in query_params, or from default values):
+        search_term (str): The term to search for in the post titles.
+        search_entire_posts (bool): Whether to search entire posts. If False, only the titles will be searched.
+        limit (int): The maximum number of posts to use to generate the summary. More posts means more context for the summary, and also more spend.
+        sort (str): The sorting method for the posts (e.g., "top", "new", "relevance").
+        time_period (str): The time period to search within (e.g., "day", "week", "month", "year", "all").
+        restrict_sr (bool): Restrict to the subreddit specified in the subreddit parameter.
+        subreddit (str, Optional): The subreddit to search within.
+
+    Returns:
+        list: A list of dictionaries containing post information.
+
+    """
+
     access_token = get_access_token()
-    url = "https://oauth.reddit.com/r/factorio/search"
-    params = {"q": f"title:{search_term}", "sort": "top", "t": "month", "restrict_sr": "true"}
+
+    # Merge query_params into defaults
+    default_params = Config.DEFAULT_REDDIT_SEARCH_PARAMS
+    params = {**default_params, **query_params}
+
+    # Extract parameters
+    search_term = params.get("search_term")
+    search_entire_posts = params.get("search_entire_posts")
+    limit = params.get("limit")
+    sort = params.get("sort")
+    time_period = params.get("time_period")
+    restrict_sr = params.get("restrict_sr")
+    subreddit = params.get("subreddit")
+
+    # Set the URL based on whether a subreddit is specified
+    if subreddit:
+        url = f"https://oauth.reddit.com/r/{subreddit}/search"
+    else:
+        url = "https://oauth.reddit.com/search"
+
+    # Set up query parameters
+    q = search_term if search_entire_posts else f"title:{search_term}"
+    params = {
+        "q": q,
+        "sort": sort,
+        "t": time_period,
+        "restrict_sr": restrict_sr,
+    }
+
+    # Set headers with access token and user agent
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "User-Agent": "RedditDataCollector/1.0"
+        "User-Agent": "AskRedditWithoutAskingReddit/1.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
     }
 
     # Send request to Reddit API
@@ -43,30 +88,32 @@ def fetch_reddit_data(search_term):
     # Parse response data
     posts = response.json().get("data", {}).get("children", [])
 
-    # Filter posts to only include those with a score >= 5 and with more than 10 characters of text (excluding any URLs)  
+    # Filter posts to only include those with a score >= 5 and with more than 10 characters of text (excluding any URLs)
     filtered_posts = [
         {
             "title": post["data"]["title"],
             "url": post["data"]["url"],
             "text": post["data"].get("selftext", ""),
             "reddit_id": post["data"]["id"],
-            "score": post["data"]["score"]
+            "score": post["data"]["score"],
+            "created_utc": post["data"]["created_utc"],
+            "retreived_utc": datetime.now(timezone.utc).isoformat(),
         }
         for post in posts
         if post["data"].get("score", 0) >= 5
         and len(re.sub(r"http\S+", "", post["data"].get("selftext", ""))) > 10
     ]
-    
-    logging.info(f"Found {len(filtered_posts)} posts for search term: {search_term}")
-    logging.debug(filtered_posts)
 
     # Limit to top 20 posts based on score
-    filtered_posts = sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[:20]
+    filtered_posts = sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[
+        :limit
+    ]
 
     return filtered_posts
 
+
 def sanitize_reddit_posts(posts):
-    """ 
+    """
     Remove any URLs and special characters from the "texn" field of the Reddit posts.
     """
     for post in posts:

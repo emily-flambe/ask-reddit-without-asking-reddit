@@ -110,3 +110,4 @@ I should make these into Github issues lol
 - [ ] Set up my own LLM with ollama
 - [ ] Add a feature that fetches posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post (This could be an entirely different project: Reddit Image Search)
 - [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
+- [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)

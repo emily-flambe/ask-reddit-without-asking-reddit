@@ -1,11 +1,18 @@
 import requests
 from flask import Blueprint, jsonify, request
-from .data_collector import get_access_token, fetch_reddit_data, sanitize_reddit_posts, save_to_database
+from .config import Config
+from .data_collector import (
+    get_access_token,
+    fetch_reddit_data,
+    sanitize_reddit_posts,
+    save_to_database,
+)
 from .database_models import RedditPost
 from .chatgpt_summarizer import ChatGPTSummarizer
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
 summarizer = ChatGPTSummarizer()
+
 
 @main.route("/", methods=["GET"])
 def hello():
@@ -94,10 +101,10 @@ def get_saved_posts():
     return jsonify(result)
 
 
-@main.route('/summarize_post', methods=['POST'])
+@main.route("/summarize_post", methods=["POST"])
 def summarize_post():
     # Assuming the client sends a JSON payload with post_id
-    post_id = request.json.get('post_id')
+    post_id = request.json.get("post_id")
 
     # Retrieve the post from the database by ID
     post = RedditPost.query.get(post_id)
@@ -111,28 +118,46 @@ def summarize_post():
     return jsonify({"status": "success", "summary": summary})
 
 
-
 @main.route("/ask_reddit", methods=["POST"])
 def ask_reddit():
     """
     Endpoint to ask a question and summarize Reddit posts related to that question.
+    Default values for params are set in data_collector.py.
     """
-    data = request.json
-    query = data.get("q")
-    
-    if not query:
-        return jsonify({"status": "fail", "message": "/ask_reddit requires a question, you donkey"}), 400
-    
+
+    query_params = request.json
+
+    search_term = query_params.get("search_term")
+    if not search_term:
+        return (
+            jsonify(
+                {
+                    "status": "fail",
+                    "message": "This is an app for asking a question. You need to have something to ask. Try and keep up.",
+                }
+            ),
+            400,
+        )
+
     # Fetch and save Reddit data based on the query
-    posts = fetch_reddit_data(query)
+    posts = fetch_reddit_data(query_params)
     save_to_database(posts)
-    
+
     # Sanitize and prepare text for summarization
     sanitized_posts = sanitize_reddit_posts(posts)
-    sanitized_post_texts = [post['text'] for post in sanitized_posts]
-    text_to_summarize = '\n\n'.join(sanitized_post_texts)
-    
+    sanitized_post_texts = [post["text"] for post in sanitized_posts]
+    text_to_summarize = "\n\n".join(sanitized_post_texts)
+
     # Generate summary
-    summary = summarizer.summarize(query, text_to_summarize)
-    
-    return jsonify({"status": "success", "summary": summary, "posts": sanitized_posts})
+    summary = summarizer.summarize(
+        topic=search_term, text=text_to_summarize
+    )
+
+    return jsonify(
+        {
+            "status": "success",
+            "summary": summary,
+            "posts": sanitized_posts,
+            "query": query_params,
+        }
+    ), 200
