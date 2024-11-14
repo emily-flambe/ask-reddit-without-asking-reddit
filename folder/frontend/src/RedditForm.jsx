@@ -3,6 +3,7 @@ import axios from "axios";
 
 function RedditForm() {
     const [query, setQuery] = useState("");
+    const [subreddit, setSubreddit] = useState("");
     const [searchEntirePosts, setSearchEntirePosts] = React.useState(false);
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
@@ -16,6 +17,7 @@ function RedditForm() {
             const response = await axios.post("http://127.0.0.1:5000/ask_reddit", {
                 search_term: query,
                 search_entire_posts: searchEntirePosts,
+                subreddit: subreddit,
             });
 
             if (response.status === 200) {
@@ -38,15 +40,30 @@ function RedditForm() {
 
     return (
         <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-            <h1>Reddit Summarizer</h1>
+            <h1>Ask Reddit</h1>
+            <h2><i>without asking Reddit</i></h2>
+            <br />
             <form onSubmit={handleSubmit}>
+                <label>
+                    Search Term:
                 <input
                     type="text"
-                    placeholder="Enter query"
+                    placeholder="gleba"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="input-field"
+                /> 
+                </label>
+                <label>
+                    Subreddit (optional):
+                <input
+                    type="text"
+                    placeholder="factorio"
+                    value={subreddit}
+                    onChange={(e) => setSubreddit(e.target.value)}
+                    className="input-field"
                 />
+                </label>
                 <label>
                     Search Entire Posts:
                     <input

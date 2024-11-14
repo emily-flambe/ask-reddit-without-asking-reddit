@@ -53,8 +53,8 @@ def fetch_reddit_data(query_params):
     limit = params.get("limit")
     sort = params.get("sort")
     time_period = params.get("time_period")
-    restrict_sr = params.get("restrict_sr")
     subreddit = params.get("subreddit")
+    restrict_sr = True if subreddit else False
 
     # Set the URL based on whether a subreddit is specified
     if subreddit:

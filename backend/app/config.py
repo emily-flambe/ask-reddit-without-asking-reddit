@@ -16,9 +16,8 @@ class Config:
     # Default Reddit search parameters
     DEFAULT_REDDIT_SEARCH_PARAMS = {
         "search_entire_posts": False,
-        "limit": 20,
+        "limit": None,
         "sort": "top",
         "time_period": "month",
         "subreddit": None,
-        "restrict_sr": True,
     }
