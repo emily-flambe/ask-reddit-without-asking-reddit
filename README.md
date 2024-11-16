@@ -2,6 +2,24 @@
 
 This is a web application that collects data from the Reddit API and does fun things with it.
 
+# How to run locally
+
+Set up a virtual environment, install dependencies, and run the Flask app.
+
+```shell
+cd backend
+source .env
+source .venv/bin/activate
+flask run
+```
+
+Start the frontend.
+
+```shell
+cd frontend
+npm run dev
+```
+
 ### Data collection
 
 This application can be run in the background to continually collect data from the Reddit API. The data is then stored in a database, which can be queried later, for fun and profit.
