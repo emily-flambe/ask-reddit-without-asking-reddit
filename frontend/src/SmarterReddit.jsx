@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-function RedditForm() {
+function SmarterAskReddit() {
     const [query, setQuery] = useState("");
     const [subreddit, setSubreddit] = useState("");
     const [searchEntirePosts, setSearchEntirePosts] = useState(false);
@@ -44,8 +44,8 @@ function RedditForm() {
 
     return (
         <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-            <h1>Ask Reddit</h1>
-            <h2><i>without asking Reddit</i></h2>
+            <h1>Smarter Ask Reddit</h1>
+            <h2><i>Let the magical internet brain sort out the querying</i></h2>
             <br />
             <form onSubmit={handleSubmit}>
                 <label>
@@ -113,4 +113,4 @@ function RedditForm() {
     );
 }
 
-export default RedditForm;
+export default SmarterAskReddit;
