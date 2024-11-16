@@ -4,14 +4,16 @@ import axios from "axios";
 function RedditForm() {
     const [query, setQuery] = useState("");
     const [subreddit, setSubreddit] = useState("");
-    const [searchEntirePosts, setSearchEntirePosts] = React.useState(false);
+    const [searchEntirePosts, setSearchEntirePosts] = useState(false);
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false); // New state for loading
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+        setLoading(true); // Set loading to true when the request starts
 
         try {
             const response = await axios.post("http://127.0.0.1:5000/ask_reddit", {
@@ -27,13 +29,15 @@ function RedditForm() {
         } catch (err) {
             console.error(err);
             setError("Failed to fetch data from the backend.");
+        } finally {
+            setLoading(false); // Set loading to false when the request completes
         }
     };
 
     const truncateText = (text, wordLimit) => {
-        const words = text.split(' ');
+        const words = text.split(" ");
         if (words.length > wordLimit) {
-            return words.slice(0, wordLimit).join(' ') + '...';
+            return words.slice(0, wordLimit).join(" ") + "...";
         }
         return text;
     };
@@ -46,23 +50,23 @@ function RedditForm() {
             <form onSubmit={handleSubmit}>
                 <label>
                     Search Term:
-                <input
-                    type="text"
-                    placeholder="gleba"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="input-field"
-                /> 
+                    <input
+                        type="text"
+                        placeholder="gleba"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="input-field"
+                    />
                 </label>
                 <label>
                     Subreddit (optional):
-                <input
-                    type="text"
-                    placeholder="factorio"
-                    value={subreddit}
-                    onChange={(e) => setSubreddit(e.target.value)}
-                    className="input-field"
-                />
+                    <input
+                        type="text"
+                        placeholder="factorio"
+                        value={subreddit}
+                        onChange={(e) => setSubreddit(e.target.value)}
+                        className="input-field"
+                    />
                 </label>
                 <label>
                     Search Entire Posts:
@@ -73,9 +77,10 @@ function RedditForm() {
                     />
                 </label>
                 <button type="submit" className="submit-button">
-                    SUBMIT.
+                    SUBMIT
                 </button>
             </form>
+            {loading && <p>Loading...</p>} {/* Display loading message */}
             {error && <p className="error-message">{error}</p>}
             {summary && (
                 <div className="summary-box">
