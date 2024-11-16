@@ -13,6 +13,12 @@ class Config:
     CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
 
+    # OpenAI API Key
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+    # User Agent
+    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+
     # Default Reddit search parameters
     DEFAULT_REDDIT_SEARCH_PARAMS = {
         "search_entire_posts": False,
