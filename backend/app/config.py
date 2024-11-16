@@ -12,3 +12,12 @@ class Config:
     CLIENT_ID = os.getenv("CLIENT_ID")
     CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
+
+    # Default Reddit search parameters
+    DEFAULT_REDDIT_SEARCH_PARAMS = {
+        "search_entire_posts": False,
+        "limit": None,
+        "sort": "top",
+        "time_period": "month",
+        "subreddit": None,
+    }

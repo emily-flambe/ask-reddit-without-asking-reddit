@@ -2,6 +2,24 @@
 
 This is a web application that collects data from the Reddit API and does fun things with it.
 
+# How to run locally
+
+Set up a virtual environment, install dependencies, and run the Flask app.
+
+```shell
+cd backend
+source .env
+source .venv/bin/activate
+flask run
+```
+
+Start the frontend.
+
+```shell
+cd frontend
+npm run dev
+```
+
 ### Data collection
 
 This application can be run in the background to continually collect data from the Reddit API. The data is then stored in a database, which can be queried later, for fun and profit.
@@ -110,3 +128,4 @@ I should make these into Github issues lol
 - [ ] Set up my own LLM with ollama
 - [ ] Add a feature that fetches posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post (This could be an entirely different project: Reddit Image Search)
 - [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
+- [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)

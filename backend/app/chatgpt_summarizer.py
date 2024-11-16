@@ -20,12 +20,16 @@ class ChatGPTSummarizer:
         :param text: The content to be summarized.
         :return: A summary string or an error message if the request fails.
         """
-        prompt = f"Please provide a concise summary of {topic} using the following text from Reddit:\n\n{text}"
+        prompt = f"Please help me understand more about {topic} based on these Reddit posts: {text}"
         data = {
             "model": "gpt-4o-mini-2024-07-18",
             "messages": [
-                {"role": "system", "content": "You are summarizing posts from multiple Reddit users."},
-                {"role": "user", "content": prompt}],
+                {
+                    "role": "system",
+                    "content": f"You are summarizing posts from multiple Reddit users in order to help me understand more about {topic}. Limit your response to 300 words.",
+                },
+                {"role": "user", "content": prompt},
+            ],
             "temperature": 0.5,
         }
 
