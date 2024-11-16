@@ -10,12 +10,12 @@ main = Blueprint("main", __name__)
 ai_handler = AIHandler(
     api_key=Config.OPENAI_API_KEY,
 )
-reddit_handler=RedditHandler(
-        client_id=Config.CLIENT_ID,
-        client_secret=Config.CLIENT_SECRET,
-        refresh_token=Config.REFRESH_TOKEN,
-        user_agent=Config.USER_AGENT,
-    )
+reddit_handler = RedditHandler(
+    client_id=Config.CLIENT_ID,
+    client_secret=Config.CLIENT_SECRET,
+    refresh_token=Config.REFRESH_TOKEN,
+    user_agent=Config.USER_AGENT,
+)
 
 
 @main.route("/", methods=["GET"])
@@ -149,12 +149,65 @@ def ask_reddit():
     reddit_handler.save_to_database(posts)
 
     # Sanitize and prepare text for summarization
-    sanitized_posts = reddit_handler.filter_posts(posts,limit=query_params.get("limit"))
+    sanitized_posts = reddit_handler.filter_posts(
+        posts, limit=query_params.get("limit")
+    )
     sanitized_post_texts = [post["text"] for post in sanitized_posts]
     text_to_summarize = "\n\n".join(sanitized_post_texts)
-    
+
     # Generate summary
     summary = ai_handler.summarize(topic=search_term, text=text_to_summarize)
+
+    return (
+        jsonify(
+            {
+                "status": "success",
+                "summary": summary,
+                "posts": sanitized_posts,
+                "query": query_params,
+            }
+        ),
+        200,
+    )
+
+
+@main.route("/smarter_ask_reddit", methods=["POST"])
+def smarter_ask_reddit():
+    """
+    Endpoint to ask a question in natural language and summarize Reddit posts related to that question.
+    """
+
+    request_params = request.json
+    natural_language_prompt = request_params.get("search_term")
+    # The only thing this route does differently is to generate the Reddit search query params from the natural language prompt
+    query_params = ai_handler.generate_query_params(natural_language_prompt)
+
+    if not natural_language_prompt:
+        return (
+            jsonify(
+                {
+                    "status": "fail",
+                    "message": "This is an app for asking a question. You need to have something to ask. Try and keep up.",
+                }
+            ),
+            400,
+        )
+
+    # Fetch and save Reddit data based on the query
+    posts = reddit_handler.fetch_reddit_data(query_params=query_params)
+    reddit_handler.save_to_database(posts)
+
+    # Sanitize and prepare text for summarization
+    sanitized_posts = reddit_handler.filter_posts(
+        posts, limit=query_params.get("limit")
+    )
+    sanitized_post_texts = [post["text"] for post in sanitized_posts]
+    text_to_summarize = "\n\n".join(sanitized_post_texts)
+
+    # Generate summary
+    summary = ai_handler.summarize(
+        topic=natural_language_prompt, text=text_to_summarize
+    )
 
     return (
         jsonify(

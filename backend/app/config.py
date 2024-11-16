@@ -12,7 +12,7 @@ class Config:
     CLIENT_ID = os.getenv("CLIENT_ID")
     CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
-     
+
     # OpenAI API Key
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

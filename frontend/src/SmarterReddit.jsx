@@ -16,7 +16,7 @@ function SmarterAskReddit() {
         setLoading(true); // Set loading to true when the request starts
 
         try {
-            const response = await axios.post("http://127.0.0.1:5000/ask_reddit", {
+            const response = await axios.post("http://127.0.0.1:5000/smarter_ask_reddit", {
                 search_term: query,
                 search_entire_posts: searchEntirePosts,
                 subreddit: subreddit,
@@ -56,24 +56,6 @@ function SmarterAskReddit() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="input-field"
-                    />
-                </label>
-                <label>
-                    Subreddit (optional):
-                    <input
-                        type="text"
-                        placeholder="factorio"
-                        value={subreddit}
-                        onChange={(e) => setSubreddit(e.target.value)}
-                        className="input-field"
-                    />
-                </label>
-                <label>
-                    Search Entire Posts:
-                    <input
-                        type="checkbox"
-                        checked={searchEntirePosts}
-                        onChange={(e) => setSearchEntirePosts(e.target.checked)}
                     />
                 </label>
                 <button type="submit" className="submit-button">

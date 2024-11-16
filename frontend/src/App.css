@@ -119,12 +119,3 @@ button:focus-visible {
 .submit-button:hover {
   background: #413ea6;
 }
-
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1em 2em;
-  background-color: #1a1a1a;
-  color: #ffffff;
-}
