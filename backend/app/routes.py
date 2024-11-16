@@ -1,17 +1,21 @@
+import os
 import requests
 from flask import Blueprint, jsonify, request
 from .config import Config
-from .data_collector import (
-    get_access_token,
-    fetch_reddit_data,
-    sanitize_reddit_posts,
-    save_to_database,
-)
+from .reddit_handler import RedditHandler
 from .database_models import RedditPost
-from .chatgpt_summarizer import ChatGPTSummarizer
+from .ai_handler import AIHandler
 
 main = Blueprint("main", __name__)
-summarizer = ChatGPTSummarizer()
+ai_handler = AIHandler(
+    api_key=Config.OPENAI_API_KEY,
+)
+reddit_handler=RedditHandler(
+        client_id=Config.CLIENT_ID,
+        client_secret=Config.CLIENT_SECRET,
+        refresh_token=Config.REFRESH_TOKEN,
+        user_agent=Config.USER_AGENT,
+    )
 
 
 @main.route("/", methods=["GET"])
@@ -23,7 +27,7 @@ def hello():
 def health_check():
     # Step 1: Attempt to get a new access token
     try:
-        access_token = get_access_token()
+        access_token = reddit_handler.get_access_token()
         if not access_token:
             return (
                 jsonify({"status": "fail", "message": "Failed to obtain access token"}),
@@ -85,8 +89,9 @@ def health_check():
 @main.route("/search_reddit", methods=["GET"])
 def search_reddit():
     term = request.args.get("term", "Gleba")
-    posts = fetch_reddit_data(term)
-    save_to_database(posts)
+    posts = reddit_handler.fetch_reddit_data(term)
+    breakpoint()
+    reddit_handler.save_to_database(posts)
     return jsonify(posts)
 
 
@@ -112,7 +117,7 @@ def summarize_post():
         return jsonify({"status": "fail", "message": "Post not found"}), 404
 
     # Send the post text to ChatGPT for summarization
-    summary = summarizer.summarize(post.text)
+    summary = ai_handler.summarize(post.text)
 
     # Return the summary
     return jsonify({"status": "success", "summary": summary})
@@ -140,24 +145,25 @@ def ask_reddit():
         )
 
     # Fetch and save Reddit data based on the query
-    posts = fetch_reddit_data(query_params)
-    save_to_database(posts)
+    posts = reddit_handler.fetch_reddit_data(query_params=query_params)
+    reddit_handler.save_to_database(posts)
 
     # Sanitize and prepare text for summarization
-    sanitized_posts = sanitize_reddit_posts(posts)
+    sanitized_posts = reddit_handler.filter_posts(posts,limit=query_params.get("limit"))
     sanitized_post_texts = [post["text"] for post in sanitized_posts]
     text_to_summarize = "\n\n".join(sanitized_post_texts)
-
+    
     # Generate summary
-    summary = summarizer.summarize(
-        topic=search_term, text=text_to_summarize
-    )
+    summary = ai_handler.summarize(topic=search_term, text=text_to_summarize)
 
-    return jsonify(
-        {
-            "status": "success",
-            "summary": summary,
-            "posts": sanitized_posts,
-            "query": query_params,
-        }
-    ), 200
+    return (
+        jsonify(
+            {
+                "status": "success",
+                "summary": summary,
+                "posts": sanitized_posts,
+                "query": query_params,
+            }
+        ),
+        200,
+    )
