@@ -118,7 +118,8 @@ Or maybe fantasies, who knows.
 
 I should make these into Github issues lol
 
-- [ ] Clean up / dedupe / consolidate the Smart Reddit feature (maybe just make it a selectable boolean)
+- [ ] Tell user about the cost before asking to confirm if asking reddit with Premium AI Experience
+- [ ] Browser should show the exact API request that was made
 - [ ] Make the frontend *aesthetic*
 - [ ] In addition to providing a summary, also list titles (hyperlinked) of the top posts that are relevant to the query
 - [ ] Group the top posts by topic

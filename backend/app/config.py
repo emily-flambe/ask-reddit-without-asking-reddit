@@ -13,8 +13,10 @@ class Config:
     CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
 
-    # OpenAI API Key
+    # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_CHAT_MODEL = "gpt-4o-mini-2024-07-18"
+    OPENAI_MAX_TOKENS = 200
 
     # User Agent
     USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
