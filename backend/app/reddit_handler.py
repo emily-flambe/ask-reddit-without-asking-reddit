@@ -77,10 +77,19 @@ class RedditHandler:
 
         # Parse and filter posts
         posts = response.json().get("data", {}).get("children", [])
-        return posts
+        return api_params, posts
 
     def filter_posts(self, posts, limit):
-        """Filter and sanitize Reddit posts."""
+        """
+        Filter Reddit posts.
+        -   Remove posts with a score less than 5.
+        -   Remove posts with less than 10 words.
+        -   Sort posts by score in descending order and return the top 'limit' posts (or all if limit is None).
+        """
+
+        # Add a field, 'all_text', that combines the title and text of each post
+        for post in posts:
+            post["data"]["all_text"] = f"{post['data'].get('title', '')} {post['data'].get('selftext', '')}".strip()
 
         filtered_posts = [
             {
@@ -95,8 +104,9 @@ class RedditHandler:
             for post in posts
             if "data" in post  # Ensure 'data' key exists
             and post["data"].get("score", 0) >= 5
-            and len(re.sub(r"http\S+", "", post["data"].get("selftext", ""))) > 10
+            and len(re.sub(r"http\S+", "", post["data"].get("all_text", ""))) > 10
         ]
+
         return sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[:limit]
 
     def save_to_database(self, posts):
@@ -112,6 +122,8 @@ class RedditHandler:
                 )
                 db.session.add(new_post)
         db.session.commit()
+
+
 
 
 # Usage example
@@ -132,5 +144,5 @@ if __name__ == "__main__":
         "subreddit": "learnpython",
     }
 
-    posts = handler.fetch_reddit_data(query_params)
+    api_params, posts = handler.fetch_reddit_data(query_params)
     handler.save_to_database(posts)

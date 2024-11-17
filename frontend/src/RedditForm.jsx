@@ -5,9 +5,11 @@ function RedditForm() {
     const [query, setQuery] = useState("");
     const [subreddit, setSubreddit] = useState("");
     const [searchEntirePosts, setSearchEntirePosts] = useState(false);
+    const [generateRedditQueryUsingAI, setGenerateRedditQueryUsingAI] = useState(false);
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [query_params, setQueryParams] = useState({});
     const [loading, setLoading] = useState(false); // New state for loading
 
     const handleSubmit = async (e) => {
@@ -19,16 +21,23 @@ function RedditForm() {
             const response = await axios.post("http://127.0.0.1:5000/ask_reddit", {
                 search_term: query,
                 search_entire_posts: searchEntirePosts,
+                generate_reddit_query_using_ai: generateRedditQueryUsingAI,
                 subreddit: subreddit,
             });
 
             if (response.status === 200) {
                 setSummary(response.data.summary);
                 setPosts(response.data.posts);
+                setQueryParams(response.data.query_params);
             }
-        } catch (err) {
+        }  catch (err) {
             console.error(err);
-            setError("Failed to fetch data from the backend.");
+            // Check for server error response
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message); // Set server-provided error message
+            } else {
+                setError("Failed to fetch data from the backend: " + err.message);
+            }
         } finally {
             setLoading(false); // Set loading to false when the request completes
         }
@@ -43,7 +52,7 @@ function RedditForm() {
     };
 
     return (
-        <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
+        <div className="form-container">
             <h1>Ask Reddit</h1>
             <h2><i>without asking Reddit</i></h2>
             <br />
@@ -68,6 +77,7 @@ function RedditForm() {
                         className="input-field"
                     />
                 </label>
+                <br />
                 <label>
                     Search Entire Posts:
                     <input
@@ -76,16 +86,30 @@ function RedditForm() {
                         onChange={(e) => setSearchEntirePosts(e.target.checked)}
                     />
                 </label>
+                <br />
+                <label>
+                    Use fancy AI to query Reddit (ULTRA PREMIUM EXPERIENCE):
+                    <input
+                        type="checkbox"
+                        checked={generateRedditQueryUsingAI}
+                        onChange={(e) => setGenerateRedditQueryUsingAI(e.target.checked)}
+                    />
+                </label>
                 <button type="submit" className="submit-button">
                     SUBMIT
                 </button>
             </form>
-            {loading && <p>Loading...</p>} {/* Display loading message */}
+            {loading && <p className="loading-message">Loading...</p>}
             {error && <p className="error-message">{error}</p>}
             {summary && (
                 <div className="summary-box">
                     <h2>Summary:</h2>
                     <p>{summary}</p>
+                    <br />
+                    <h3>Query Parameters Used:</h3>
+                    <div className="query-params-box">
+                        <pre>{JSON.stringify(query_params, null, 2)}</pre>
+                    </div>
                     <br />
                     <h3>Posts included in summary:</h3>
                     <br />

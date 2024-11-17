@@ -1,4 +1,4 @@
-import os
+import logging
 import requests
 from flask import Blueprint, jsonify, request
 from .config import Config
@@ -9,6 +9,8 @@ from .ai_handler import AIHandler
 main = Blueprint("main", __name__)
 ai_handler = AIHandler(
     api_key=Config.OPENAI_API_KEY,
+    max_tokens=Config.OPENAI_MAX_TOKENS,
+    openai_chat_model=Config.OPENAI_CHAT_MODEL,
 )
 reddit_handler = RedditHandler(
     client_id=Config.CLIENT_ID,
@@ -17,6 +19,7 @@ reddit_handler = RedditHandler(
     user_agent=Config.USER_AGENT,
 )
 
+logging.basicConfig(level=logging.INFO)
 
 @main.route("/", methods=["GET"])
 def hello():
@@ -86,15 +89,6 @@ def health_check():
         )
 
 
-@main.route("/search_reddit", methods=["GET"])
-def search_reddit():
-    term = request.args.get("term", "Gleba")
-    posts = reddit_handler.fetch_reddit_data(term)
-    breakpoint()
-    reddit_handler.save_to_database(posts)
-    return jsonify(posts)
-
-
 @main.route("/get_saved_posts", methods=["GET"])
 def get_saved_posts():
     # Query all saved posts
@@ -106,8 +100,8 @@ def get_saved_posts():
     return jsonify(result)
 
 
-@main.route("/summarize_post", methods=["POST"])
-def summarize_post():
+@main.route("/summarize_post_from_database", methods=["POST"])
+def summarize_post_from_database():
     # Assuming the client sends a JSON payload with post_id
     post_id = request.json.get("post_id")
 
@@ -144,77 +138,50 @@ def ask_reddit():
             400,
         )
 
+    # Optionally use AI to construct query params using the prompt. This is FANCY and more expensive.
+    if query_params.get("generate_reddit_query_using_ai"):
+        query_params = ai_handler.generate_query_params(search_term)
+        logging.info(f"Updated query params using AI fanciness: {query_params}")
+
     # Fetch and save Reddit data based on the query
-    posts = reddit_handler.fetch_reddit_data(query_params=query_params)
+    api_params, posts = reddit_handler.fetch_reddit_data(query_params=query_params)
     reddit_handler.save_to_database(posts)
 
     # Sanitize and prepare text for summarization
-    sanitized_posts = reddit_handler.filter_posts(
+    filtered_reddit_posts = reddit_handler.filter_posts(
         posts, limit=query_params.get("limit")
     )
-    sanitized_post_texts = [post["text"] for post in sanitized_posts]
-    text_to_summarize = "\n\n".join(sanitized_post_texts)
-
-    # Generate summary
-    summary = ai_handler.summarize(topic=search_term, text=text_to_summarize)
-
-    return (
-        jsonify(
-            {
-                "status": "success",
-                "summary": summary,
-                "posts": sanitized_posts,
-                "query": query_params,
-            }
-        ),
-        200,
-    )
-
-
-@main.route("/smarter_ask_reddit", methods=["POST"])
-def smarter_ask_reddit():
-    """
-    Endpoint to ask a question in natural language and summarize Reddit posts related to that question.
-    """
-
-    request_params = request.json
-    natural_language_prompt = request_params.get("search_term")
-    # The only thing this route does differently is to generate the Reddit search query params from the natural language prompt
-    query_params = ai_handler.generate_query_params(natural_language_prompt)
-
-    if not natural_language_prompt:
+    # Return an error if no posts are found
+    if not filtered_reddit_posts:
         return (
             jsonify(
                 {
                     "status": "fail",
-                    "message": "This is an app for asking a question. You need to have something to ask. Try and keep up.",
+                    "message": "No relevant posts found. Try asking a different question.",
                 }
             ),
-            400,
+            404,
         )
 
-    # Fetch and save Reddit data based on the query
-    posts = reddit_handler.fetch_reddit_data(query_params=query_params)
-    reddit_handler.save_to_database(posts)
+    text_to_summarize = "\n".join([post["text"] for post in filtered_reddit_posts])
 
-    # Sanitize and prepare text for summarization
-    sanitized_posts = reddit_handler.filter_posts(
-        posts, limit=query_params.get("limit")
-    )
-    sanitized_post_texts = [post["text"] for post in sanitized_posts]
-    text_to_summarize = "\n\n".join(sanitized_post_texts)
+    # Calculate the number of tokens to use for summarization
+    # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
+    messages_for_ai_summarization = ai_handler.generate_messages_summarize_posts(topic=search_term, text=text_to_summarize)
+    tokens_and_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
+    tokens = tokens_and_cost.get("total_tokens")
+    cost = tokens_and_cost.get("cost")
+    logging.info(f"Request will need {tokens} and cost ${cost:.2f}")
 
     # Generate summary
-    summary = ai_handler.summarize(
-        topic=natural_language_prompt, text=text_to_summarize
-    )
+    summary = ai_handler.send_request(messages=messages_for_ai_summarization)
 
     return (
         jsonify(
             {
                 "status": "success",
                 "summary": summary,
-                "posts": sanitized_posts,
+                "posts": filtered_reddit_posts,
                 "query": query_params,
             }
         ),

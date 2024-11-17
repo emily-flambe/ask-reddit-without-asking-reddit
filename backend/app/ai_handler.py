@@ -1,20 +1,50 @@
-import os
 import requests
+import tiktoken
 
 
 class AIHandler:
     def __init__(
-        self, api_key=None, api_url="https://api.openai.com/v1/chat/completions"
+        self, api_key=None, max_tokens = 200, openai_chat_model=None, api_url="https://api.openai.com/v1/chat/completions"
     ):
         self.api_key = api_key
         self.api_url = api_url
+        self.max_tokens = max_tokens
+        self.openai_chat_model = openai_chat_model
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
+    def calculate_token_usage(self, messages):
+        """
+        Calculate the number of tokens used in a request.
+
+        :param messages: List of message dicts for the chat (system and user messages).
+        :param model: OpenAI model to use for the request (e.g., "gpt-3.5-turbo", "gpt-4").
+        :return: Number of tokens used for the request.
+        """
+        try:
+            # Get the tokenizer for the specified model
+            encoding = tiktoken.encoding_for_model(self.openai_chat_model)
+
+            # Tokenize each message and calculate total tokens
+            openai_tokens_and_cost = {}
+            total_tokens = 0
+            for message in messages:
+                tokens = encoding.encode(message["content"])
+                total_tokens += len(tokens)
+
+                # Add tokens for the role (e.g., "user" or "system")
+                total_tokens += len(encoding.encode(message["role"]))
+            openai_tokens_and_cost["total_tokens"] = total_tokens
+            openai_tokens_and_cost["cost"] = (total_tokens / 1_000_000) * 0.150
+
+            return openai_tokens_and_cost
+        except Exception as e:
+            return f"Error calculating token usage: {str(e)}"
+
     def send_request(
-        self, messages, model="gpt-4o-mini-2024-07-18", temperature=0.5, max_tokens=200
+        self, messages, temperature=0.5
     ):
         """
         Send a request to the OpenAI API with the given parameters.
@@ -26,10 +56,10 @@ class AIHandler:
         :return: The API response content or an error message.
         """
         data = {
-            "model": model,
+            "model": self.openai_chat_model,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": max_tokens,
+            "max_tokens": self.max_tokens,
         }
 
         response = requests.post(self.api_url, headers=self.headers, json=data)
@@ -40,13 +70,13 @@ class AIHandler:
         else:
             return f"Error: {response.status_code}, {response.text}"
 
-    def summarize(self, topic, text):
+    def generate_messages_summarize_posts(self, topic, text):
         """
         Summarize the given text using OpenAI's chat model.
 
         :param topic: The topic of the summarization.
         :param text: The content to summarize.
-        :return: The summary or an error message.
+        :return: The message to send to the OpenAI chat model.
         """
         messages = [
             {
@@ -58,7 +88,9 @@ class AIHandler:
                 "content": f"Please help me understand more about {topic} based on these Reddit posts: {text}",
             },
         ]
-        return self.send_request(messages)
+        
+        return messages
+        # return self.send_request(messages)
 
     def generate_query_params(self, natural_language_prompt):
         """
@@ -114,3 +146,4 @@ class AIHandler:
             return eval(cleaned_response)
         except Exception as e:
             return f"Error parsing response: {str(e)}"
+        
