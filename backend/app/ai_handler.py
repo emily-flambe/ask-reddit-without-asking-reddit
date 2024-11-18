@@ -90,7 +90,6 @@ class AIHandler:
         ]
         
         return messages
-        # return self.send_request(messages)
 
     def generate_query_params(self, natural_language_prompt):
         """
@@ -138,7 +137,7 @@ class AIHandler:
             },
         ]
 
-        response = self.send_request(messages, max_tokens=1000)  # increase max_tokens for a PREMIUM experience. Parameterize this later maybe.
+        response = self.send_request(messages)
         
         # OpenAI chat model returns the response in a code block. We need to extract the content from it.
         cleaned_response = response.strip("```python").strip("```").strip()

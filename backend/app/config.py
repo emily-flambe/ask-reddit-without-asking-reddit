@@ -16,7 +16,7 @@ class Config:
     # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_CHAT_MODEL = "gpt-4o-mini-2024-07-18"
-    OPENAI_MAX_TOKENS = 200
+    OPENAI_MAX_TOKENS = 2000
 
     # User Agent
     USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"

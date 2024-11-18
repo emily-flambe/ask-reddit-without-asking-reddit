@@ -171,7 +171,7 @@ def ask_reddit():
     tokens_and_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
     tokens = tokens_and_cost.get("total_tokens")
     cost = tokens_and_cost.get("cost")
-    logging.info(f"Request will need {tokens} and cost ${cost:.2f}")
+    logging.info(f"Request will need {tokens} and cost ${cost:.4f}")
 
     # Generate summary
     summary = ai_handler.send_request(messages=messages_for_ai_summarization)
