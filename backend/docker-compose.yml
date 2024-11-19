@@ -1,0 +1,33 @@
+# docker-compose.backend.yml
+# This file is used to test and run the backend in isolation with its dependencies.
+
+version: '3'
+services:
+  app:
+    build:
+      context: .
+    environment:
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - DATABASE_URL=postgresql://reddit_user:password@db/reddit_data
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=reddit_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=reddit_data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

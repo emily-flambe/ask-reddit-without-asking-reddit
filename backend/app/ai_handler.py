@@ -81,7 +81,7 @@ class AIHandler:
         messages = [
             {
                 "role": "system",
-                "content": f"You are summarizing posts from multiple Reddit users to help me understand more about {topic}. Limit your response to 300 words.",
+                "content": f"You are summarizing posts from multiple Reddit users to help me understand more about {topic}. Limit your response to 100 words. Do not use any special formatting.",
             },
             {
                 "role": "user",

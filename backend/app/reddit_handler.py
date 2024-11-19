@@ -113,6 +113,9 @@ class RedditHandler:
         """Save filtered Reddit posts to the database."""
         for post in posts:
             post = post["data"]
+            # Truncate title and text to first 100 characters
+            post["title"] = post["title"][:100]
+            post["selftext"] = post["selftext"][:100] if post["selftext"] else ""
             if not RedditPost.query.filter_by(reddit_id=post["id"]).first():
                 new_post = RedditPost(
                     title=post["title"],
@@ -145,4 +148,4 @@ if __name__ == "__main__":
     }
 
     api_params, posts = handler.fetch_reddit_data(query_params)
-    handler.save_to_database(posts)
+    #handler.save_to_database(posts)

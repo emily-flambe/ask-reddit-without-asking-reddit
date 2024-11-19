@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  frontend:
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app  # Mount local files for hot reload
+    environment:
+      - NODE_ENV=development
+    command: ["npm", "run", "dev", "--", "--host=0.0.0.0"]
+
+  backend:
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/app  # Mount local files for hot reload
+    command: ["flask", "run", "--host=0.0.0.0"]
