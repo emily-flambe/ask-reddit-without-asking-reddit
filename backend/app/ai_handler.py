@@ -80,13 +80,13 @@ class AIHandler:
         """
         messages = [
             {
-                "role": "system",
-                "content": f"You are summarizing posts from multiple Reddit users to help me understand more about {topic}. Limit your response to 100 words. Do not use any special formatting.",
+            "role": "system",
+            "content": "You are an AI assistant tasked with summarizing information from Reddit posts. Focus solely on the provided content to generate an accurate and concise summary about the specified topic. Do not include opinions, assumptions, or information outside the provided text. Your summary should be no longer than 100 words and should avoid special formatting such as bullet points or markdown."
             },
             {
-                "role": "user",
-                "content": f"Please help me understand more about {topic} based on these Reddit posts: {text}",
-            },
+            "role": "user",
+            "content": f"Here are some Reddit posts about this query: {topic}. If that topic seems like a question, answer the question. If not, provide some general information about the topic. Please provide your answer using the content of these posts fetched from Reddit: {text}"
+            }
         ]
         
         return messages
