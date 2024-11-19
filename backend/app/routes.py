@@ -18,7 +18,6 @@ reddit_handler = RedditHandler(
     refresh_token=Config.REFRESH_TOKEN,
     user_agent=Config.USER_AGENT,
 )
-
 logging.basicConfig(level=logging.INFO)
 
 @main.route("/", methods=["GET"])
@@ -122,11 +121,23 @@ def ask_reddit():
     """
     Endpoint to ask a question and summarize Reddit posts related to that question.
     Default values for params are set in data_collector.py.
+
+    Params:
+    - search_term: The question to ask Reddit.
+    - ai_generate_summary: Whether to use AI to generate a summary. If set to False, the app will not provide a summary.
+    - ai_generate_query: Use AI to generate query params. This incurs a bit more cost but provides a better answer.
     """
 
     query_params = request.json
+    logging.info(f"Received query params: {query_params}")
 
     search_term = query_params.get("search_term")
+    subreddit = query_params.get("subreddit")
+
+    # Optional AI features
+    ai_generate_summary = query_params.get("ai_generate_summary")
+    ai_generate_query = query_params.get("ai_generate_query")
+
     if not search_term:
         return (
             jsonify(
@@ -138,10 +149,24 @@ def ask_reddit():
             400,
         )
 
+    total_tokens = 0
+    total_cost = 0
+
     # Optionally use AI to construct query params using the prompt. This is FANCY and more expensive.
-    if query_params.get("generate_reddit_query_using_ai"):
-        query_params = ai_handler.generate_query_params(search_term)
+    if ai_generate_query:
+        messages_to_generate_query = ai_handler.generate_messages_to_generate_query(search_term=search_term, subreddit=subreddit)
+        
+        # Calculate the number of tokens to use for summarization
+        # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
+        generate_query_tokens, generate_query_cost = ai_handler.calculate_token_usage(messages=messages_to_generate_query)
+        logging.info(f"Generating the query will need {generate_query_tokens} and cost ${generate_query_cost:.4f}")
+        
+        # Generate reddit query params        
+        query_params = ai_handler.generate_query_params(search_term, subreddit)
         logging.info(f"Updated query params using AI fanciness: {query_params}")
+
+        total_cost += generate_query_cost
+        total_tokens += generate_query_tokens
 
     # Fetch and save Reddit data based on the query
     api_params, posts = reddit_handler.fetch_reddit_data(query_params=query_params)
@@ -165,24 +190,34 @@ def ask_reddit():
 
     text_to_summarize = "\n".join([post["text"] for post in filtered_reddit_posts])
 
-    # Calculate the number of tokens to use for summarization
-    # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
-    messages_for_ai_summarization = ai_handler.generate_messages_summarize_posts(topic=search_term, text=text_to_summarize)
-    tokens_and_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
-    tokens = tokens_and_cost.get("total_tokens")
-    cost = tokens_and_cost.get("cost")
-    logging.info(f"Request will need {tokens} and cost ${cost:.4f}")
+    if ai_generate_summary:
+        # Calculate the number of tokens to use for summarization
+        # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
+        messages_for_ai_summarization = ai_handler.generate_messages_summarize_posts(topic=search_term, text=text_to_summarize)
+        summary_tokens, summary_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
+        logging.info(f"Generating the summary will need {summary_tokens} and cost ${summary_cost:.4f}")
+        
+        # Generate summary
+        summary = ai_handler.send_request(messages=messages_for_ai_summarization)
 
-    # Generate summary
-    summary = ai_handler.send_request(messages=messages_for_ai_summarization)
+        total_tokens += summary_tokens
+        total_cost += summary_cost
+
+    else:
+        summary = None
 
     return (
         jsonify(
             {
                 "status": "success",
                 "summary": summary,
+                "ai_generate_summary": ai_generate_summary,
+                "ai_generate_query": ai_generate_query,
                 "posts": filtered_reddit_posts,
-                "query": query_params,
+                "query_params": query_params,
+                "reddit_api_params": api_params,
+                "total_tokens": total_tokens,
+                "total_cost": total_cost,
             }
         ),
         200,

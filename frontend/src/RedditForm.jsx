@@ -5,30 +5,40 @@ function RedditForm() {
     const [query, setQuery] = useState("");
     const [subreddit, setSubreddit] = useState("");
     const [searchEntirePosts, setSearchEntirePosts] = useState(false);
-    const [generateRedditQueryUsingAI, setGenerateRedditQueryUsingAI] = useState(false);
+    const [AIGenerateSummary, setAIGenerateSummary] = useState(false);
+    const [AIGenerateQuery, setAIGenerateQuery] = useState(false);
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
     const [posts, setPosts] = useState([]);
-    const [query_params, setQueryParams] = useState({});
+    const [reddit_api_params, setRedditAPIParams] = useState({});
+    const [totalCost, setTotalCost] = useState(false);
     const [loading, setLoading] = useState(false); // New state for loading
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+
+        // Validation: Check if the search term is not empty
+        if (!query.trim()) {
+            setError("Search term is required. What exactly do you think you are doing?");
+            return;
+        }
+
         setLoading(true); // Set loading to true when the request starts
 
         try {
             const response = await axios.post("http://127.0.0.1:5000/ask_reddit", {
                 search_term: query,
                 search_entire_posts: searchEntirePosts,
-                generate_reddit_query_using_ai: generateRedditQueryUsingAI,
+                ai_generate_summary: AIGenerateSummary,
+                ai_generate_query: AIGenerateQuery,
                 subreddit: subreddit,
             });
-
             if (response.status === 200) {
                 setSummary(response.data.summary);
                 setPosts(response.data.posts);
-                setQueryParams(response.data.query_params);
+                setRedditAPIParams(response.data.reddit_api_params);
+                setTotalCost(response.data.total_cost);
             }
         }  catch (err) {
             console.error(err);
@@ -59,6 +69,7 @@ function RedditForm() {
             <form onSubmit={handleSubmit}>
                 <label>
                     Search Term:
+                    <br />
                     <input
                         type="text"
                         placeholder="gleba"
@@ -67,8 +78,10 @@ function RedditForm() {
                         className="input-field"
                     />
                 </label>
+                <br />
                 <label>
                     Subreddit (optional):
+                    <br />
                     <input
                         type="text"
                         placeholder="factorio"
@@ -79,21 +92,31 @@ function RedditForm() {
                 </label>
                 <br />
                 <label>
-                    Search Entire Posts:
                     <input
                         type="checkbox"
                         checked={searchEntirePosts}
                         onChange={(e) => setSearchEntirePosts(e.target.checked)}
                     />
+                    Search entire text of Reddit posts (costlier, probably better)
+                </label>
+                <br /><br />
+                <h3 >Premium AI Experiences:</h3>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={AIGenerateSummary}
+                        onChange={(e) => setAIGenerateSummary(e.target.checked)}
+                    />
+                    Summarize the Reddit posts to answer your question
                 </label>
                 <br />
                 <label>
-                    Use fancy AI to query Reddit (ULTRA PREMIUM EXPERIENCE):
                     <input
                         type="checkbox"
-                        checked={generateRedditQueryUsingAI}
-                        onChange={(e) => setGenerateRedditQueryUsingAI(e.target.checked)}
+                        checked={AIGenerateQuery}
+                        onChange={(e) => setAIGenerateQuery(e.target.checked)}
                     />
+                    Improve (maybe) the Reddit search query
                 </label>
                 <button type="submit" className="submit-button">
                     SUBMIT
@@ -103,13 +126,21 @@ function RedditForm() {
             {error && <p className="error-message">{error}</p>}
             {summary && (
                 <div className="summary-box">
-                    <h2>Summary:</h2>
-                    <p>{summary}</p>
                     <br />
                     <h3>Query Parameters Used:</h3>
                     <div className="query-params-box">
-                        <pre>{JSON.stringify(query_params, null, 2)}</pre>
+                        <pre>{JSON.stringify(reddit_api_params, null, 2)}</pre>
                     </div>
+                    <br />
+                    {totalCost > 0 && ( // Conditionally display cost if totalCost is greater than zero
+                        <>
+                            <h3>Total Cost:</h3>
+                            <p>${totalCost.toFixed(2)}</p>
+                            <br />
+                        </>
+                    )}
+                    <h2>Summary:</h2>
+                    <p>{summary}</p>
                     <br />
                     <h3>Posts included in summary:</h3>
                     <br />

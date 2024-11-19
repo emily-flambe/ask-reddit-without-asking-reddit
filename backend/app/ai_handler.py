@@ -21,14 +21,15 @@ class AIHandler:
 
         :param messages: List of message dicts for the chat (system and user messages).
         :param model: OpenAI model to use for the request (e.g., "gpt-3.5-turbo", "gpt-4").
-        :return: Number of tokens used for the request.
+        
+        Returns:
+        - Tuple containing the total number of tokens and the cost in USD.
         """
         try:
             # Get the tokenizer for the specified model
             encoding = tiktoken.encoding_for_model(self.openai_chat_model)
 
             # Tokenize each message and calculate total tokens
-            openai_tokens_and_cost = {}
             total_tokens = 0
             for message in messages:
                 tokens = encoding.encode(message["content"])
@@ -36,10 +37,9 @@ class AIHandler:
 
                 # Add tokens for the role (e.g., "user" or "system")
                 total_tokens += len(encoding.encode(message["role"]))
-            openai_tokens_and_cost["total_tokens"] = total_tokens
-            openai_tokens_and_cost["cost"] = (total_tokens / 1_000_000) * 0.150
+            total_cost = (total_tokens / 1_000_000) * 0.150
 
-            return openai_tokens_and_cost
+            return total_tokens, total_cost
         except Exception as e:
             return f"Error calculating token usage: {str(e)}"
 
@@ -80,26 +80,31 @@ class AIHandler:
         """
         messages = [
             {
-                "role": "system",
-                "content": f"You are summarizing posts from multiple Reddit users to help me understand more about {topic}. Limit your response to 100 words. Do not use any special formatting.",
+            "role": "system",
+            "content": "You are an AI assistant tasked with summarizing information from Reddit posts. Focus solely on the provided content to generate an accurate and concise summary about the specified topic. Do not include opinions, assumptions, or information outside the provided text. Your summary should be no longer than 150 words and should avoid special formatting such as bullet points or markdown."
             },
             {
-                "role": "user",
-                "content": f"Please help me understand more about {topic} based on these Reddit posts: {text}",
-            },
+            "role": "user",
+            "content": f"Here are some Reddit posts about this query: {topic}. If that topic seems like a question, answer the question. If not, provide some general information about the topic. Please provide your answer using the content of these posts fetched from Reddit: {text}. Even if the posts don't seem to answer the question, try to generate a relevant summary based on the information provided."
+            }
         ]
         
         return messages
 
-    def generate_query_params(self, natural_language_prompt):
+    def generate_messages_to_generate_query(self, search_term, subreddit=None):
         """
         Generate query parameters for a Reddit search from a natural language prompt.
 
-        :param natural_language_prompt: The natural language prompt provided by the user.
-        :return: Generated query parameters as a Python dictionary or an error message.
+        :param search_term: The natural language prompt provided by the user.
         """
-
+        
         system_message_content = "You are an assistant that converts natural language questions into structured query parameters for a Reddit API search."
+
+        if subreddit:
+            subreddit_constraint = f"This must be set to '{subreddit}'."
+        else:
+            subreddit_constraint = "Suggest a subreddit (e.g., 'relationships', 'AskReddit', 'dating_advice') if the question implies a category, otherwise leave it None."
+        
         user_message_content = f"""
         Turn the following prompt into query parameters for a Reddit API search. Generate the result as a Python dictionary.
         Keys:
@@ -109,7 +114,7 @@ class AIHandler:
         - sort: Choose between "relevance", "top", or "new".
         - time_period: Choose one of "day", "week", "month", "year", or "all".
         - restrict_sr: True if the question implies a specific subreddit, False otherwise.
-        - subreddit: Suggest a subreddit (e.g., "relationships", "AskReddit", "dating_advice") if the question implies a category, otherwise leave it None.
+        - subreddit: {subreddit_constraint}
 
         Example question: "How to tell if a boy likes you?"
         Expected output:
@@ -123,7 +128,7 @@ class AIHandler:
             "subreddit": "dating_advice"
         }}
 
-        Prompt or Question: {natural_language_prompt}
+        Prompt or Question: {search_term}
         """
 
         messages = [
@@ -136,6 +141,19 @@ class AIHandler:
                 "content": user_message_content,
             },
         ]
+
+        return messages
+        
+    def generate_query_params(self, messages):
+        """
+        Generate query parameters for a Reddit search based on a natural language prompt.
+        
+        Parameters:
+        - `messages` is created by `generate_messages_generate_query`.
+        
+        Returns:
+        - A Python dictionary containing the query parameters.
+        """
 
         response = self.send_request(messages)
         

@@ -1,7 +1,9 @@
 # app/config.py
 
+from dotenv import load_dotenv
 import os
 
+load_dotenv()
 
 class Config:
     # Configure SQLite as the database
@@ -25,7 +27,7 @@ class Config:
     DEFAULT_REDDIT_SEARCH_PARAMS = {
         "search_entire_posts": False,
         "limit": None,
-        "sort": "top",
+        "sort": "relevance",
         "time_period": "month",
         "subreddit": None,
     }

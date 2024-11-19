@@ -32,7 +32,11 @@ class RedditHandler:
     def fetch_reddit_data(self, query_params):
         """Fetch data from the Reddit API based on query parameters."""
         if not self.access_token:
-            self.get_access_token()
+            try:
+                self.get_access_token()
+            except Exception as e:
+                logging.error(f"Failed to fetch access token: {e}")
+                return []
 
         # Merge query_params into defaults
         default_params = Config.DEFAULT_REDDIT_SEARCH_PARAMS

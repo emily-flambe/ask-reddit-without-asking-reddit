@@ -15,11 +15,6 @@ services:
     build:
       context: ./backend
     environment:
-      - FLASK_APP=${FLASK_APP}
-      - FLASK_ENV=${FLASK_ENV}
-      - CLIENT_ID=${CLIENT_ID}
-      - CLIENT_SECRET=${CLIENT_SECRET}
-      - REFRESH_TOKEN=${REFRESH_TOKEN}
       - DATABASE_URL=postgresql://reddit_user:password@db/reddit_data
     ports:
       - "5000:5000"
