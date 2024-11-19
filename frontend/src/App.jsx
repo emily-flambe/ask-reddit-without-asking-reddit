@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import RedditForm from "./RedditForm";
-import SmarterAskReddit from "./SmarterReddit";
 import About from "./About";
 
 function Layout() {
@@ -17,9 +16,6 @@ function Layout() {
                     <li>
                         <Link to="/reddit-form">Reddit Form</Link>
                     </li>
-                    <li>
-                        <Link to="/smarter-ask-reddit">Smarter Ask Reddit</Link>
-                    </li>
                 </ul>
             </nav>
 
@@ -28,7 +24,6 @@ function Layout() {
                 <Routes>
                     <Route path="/" element={<About />} />
                     <Route path="/reddit-form" element={<RedditForm />} />
-                    <Route path="/smarter-ask-reddit" element={<SmarterAskReddit />} />
                 </Routes>
             </div>
         </div>
