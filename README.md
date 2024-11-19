@@ -121,9 +121,7 @@ I should make these into Github issues lol
 - [ ] Tell user about the cost before asking to confirm if asking reddit with Premium AI Experience
 - [ ] Browser should show the exact API request that was made
 - [ ] Make the frontend *aesthetic*
-- [ ] In addition to providing a summary, also list titles (hyperlinked) of the top posts that are relevant to the query
 - [ ] Group the top posts by topic
-- [ ] Add more features to the frontend (search parameters: subreddit, time frame, karma minimum, sort by controversial, etc.)
 - [ ] Add a scheduler to collect data at regular intervals
 - [ ] Add more features to the data collection (e.g. collect comments, more metadata)
 - [ ] Add data analysis and visualization
@@ -131,3 +129,4 @@ I should make these into Github issues lol
 - [ ] Add a feature that fetches posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post (This could be an entirely different project: Reddit Image Search)
 - [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
 - [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)
+- [ ] Add the ability to ask ChatGPT follow up questions from the browser

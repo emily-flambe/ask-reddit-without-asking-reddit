@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=reddit_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=reddit_data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      - FLASK_APP=${FLASK_APP}
+      - FLASK_ENV=${FLASK_ENV}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - DATABASE_URL=postgresql://reddit_user:password@db/reddit_data
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/usr/src/app
+      - node_modules:/usr/src/app/node_modules
+
+volumes:
+  postgres_data:
+  node_modules:

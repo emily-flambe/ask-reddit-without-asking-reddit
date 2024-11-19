@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  frontend:
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    command: []  # No hot reload, use default CMD from Dockerfile
+
+  backend:
+    environment:
+      - FLASK_ENV=production
+    command: ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
