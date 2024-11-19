@@ -122,11 +122,19 @@ def ask_reddit():
     """
     Endpoint to ask a question and summarize Reddit posts related to that question.
     Default values for params are set in data_collector.py.
+
+    Params:
+    - search_term: The question to ask Reddit.
+    - generate_reddit_query_using_ai: Use AI to generate query params. This incurs a bit more cost but provides a better answer.
+    - skip_ai: Skip the AI model for generating query params. If this is selected, the app will not provide a summary, but will just list the reddit posts returned from the query.
     """
 
     query_params = request.json
 
     search_term = query_params.get("search_term")
+    skip_ai = query_params.get("skip_ai")
+    generate_reddit_query_using_ai = query_params.get("generate_reddit_query_using_ai")
+
     if not search_term:
         return (
             jsonify(
@@ -139,7 +147,7 @@ def ask_reddit():
         )
 
     # Optionally use AI to construct query params using the prompt. This is FANCY and more expensive.
-    if query_params.get("generate_reddit_query_using_ai"):
+    if not skip_ai and generate_reddit_query_using_ai:
         query_params = ai_handler.generate_query_params(search_term)
         logging.info(f"Updated query params using AI fanciness: {query_params}")
 
@@ -165,24 +173,30 @@ def ask_reddit():
 
     text_to_summarize = "\n".join([post["text"] for post in filtered_reddit_posts])
 
-    # Calculate the number of tokens to use for summarization
-    # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
-    messages_for_ai_summarization = ai_handler.generate_messages_summarize_posts(topic=search_term, text=text_to_summarize)
-    tokens_and_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
-    tokens = tokens_and_cost.get("total_tokens")
-    cost = tokens_and_cost.get("cost")
-    logging.info(f"Request will need {tokens} and cost ${cost:.4f}")
+    if not skip_ai:
+        # Calculate the number of tokens to use for summarization
+        # messages_for_ai_summarization is the object that will be sent to the AI model containing prompts for the system and user
+        messages_for_ai_summarization = ai_handler.generate_messages_summarize_posts(topic=search_term, text=text_to_summarize)
+        tokens_and_cost = ai_handler.calculate_token_usage(messages=messages_for_ai_summarization)
+        tokens = tokens_and_cost.get("total_tokens")
+        cost = tokens_and_cost.get("cost")
+        logging.info(f"Request will need {tokens} and cost ${cost:.4f}")
 
-    # Generate summary
-    summary = ai_handler.send_request(messages=messages_for_ai_summarization)
+        # Generate summary
+        summary = ai_handler.send_request(messages=messages_for_ai_summarization)
+
+    else:
+        summary = None
 
     return (
         jsonify(
             {
                 "status": "success",
                 "summary": summary,
+                "skip_ai": skip_ai,
                 "posts": filtered_reddit_posts,
-                "query": query_params,
+                "query_params": query_params,
+                "reddit_api_params": api_params,
             }
         ),
         200,

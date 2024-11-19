@@ -9,7 +9,8 @@ function RedditForm() {
     const [summary, setSummary] = useState("");
     const [error, setError] = useState(null);
     const [posts, setPosts] = useState([]);
-    const [query_params, setQueryParams] = useState({});
+    const [reddit_api_params, setRedditAPIParams] = useState({});
+    const [skipAI, setSkipAI] = useState(false);
     const [loading, setLoading] = useState(false); // New state for loading
 
     const handleSubmit = async (e) => {
@@ -28,7 +29,8 @@ function RedditForm() {
             if (response.status === 200) {
                 setSummary(response.data.summary);
                 setPosts(response.data.posts);
-                setQueryParams(response.data.query_params);
+                setRedditAPIParams(response.data.reddit_api_params);
+                setSkipAI(response.data.skip_ai);
             }
         }  catch (err) {
             console.error(err);
@@ -108,7 +110,7 @@ function RedditForm() {
                     <br />
                     <h3>Query Parameters Used:</h3>
                     <div className="query-params-box">
-                        <pre>{JSON.stringify(query_params, null, 2)}</pre>
+                        <pre>{JSON.stringify(reddit_api_params, null, 2)}</pre>
                     </div>
                     <br />
                     <h3>Posts included in summary:</h3>
