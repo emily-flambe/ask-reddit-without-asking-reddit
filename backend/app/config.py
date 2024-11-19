@@ -25,7 +25,7 @@ class Config:
     DEFAULT_REDDIT_SEARCH_PARAMS = {
         "search_entire_posts": False,
         "limit": None,
-        "sort": "top",
+        "sort": "relevance",
         "time_period": "month",
         "subreddit": None,
     }
