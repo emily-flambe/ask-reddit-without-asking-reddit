@@ -130,3 +130,5 @@ I should make these into Github issues lol
 - [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
 - [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)
 - [ ] Add the ability to ask ChatGPT follow up questions from the browser
+- [ ] NEW FEATURE: Reddit Image Search
+- [ ] NEW FEATURE: Reddit Topic Subscriber (get notified when a new post is made about a specific topic, like, I dunno, crows)
