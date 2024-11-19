@@ -4,6 +4,14 @@ This is a web application that collects data from the Reddit API and does fun th
 
 # How to run locally
 
+## Docker
+
+```shell
+make install
+make up
+```
+
+## Without Docker
 Set up a virtual environment, install dependencies, and run the Flask app.
 
 ```shell
@@ -119,7 +127,9 @@ Or maybe fantasies, who knows.
 I should make these into Github issues lol
 
 - [ ] Tell user about the cost before asking to confirm if asking reddit with Premium AI Experience
-- [ ] Browser should show the exact API request that was made
+- [ ] Add a button enabling the user to fetch more posts to incorporate into the summary
+- [ ] Add a text box for the user to ask follow up questions to the AI
+- [ ] Even Smarter Search: Some way of executing multiple queries and combining the results to answer a question
 - [ ] Make the frontend *aesthetic*
 - [ ] Group the top posts by topic
 - [ ] Add a scheduler to collect data at regular intervals
