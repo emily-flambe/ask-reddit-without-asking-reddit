@@ -1,48 +1,56 @@
+/* About Page Container */
 .about-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    width: 100vw; /* Ensure the container spans the full viewport width */
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: white;
-    font-family: 'Arial', sans-serif;
-}
-
-.about-content {
-    width: 100%; /* Remove width constraints */
-    max-width: none; /* Disable max-width limits */
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 20px 30px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.about-title {
-    font-size: 3rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #f7c08a;
-}
-
-.about-tagline {
-    font-size: 1.5rem;
-    font-style: italic;
-    color: #f5e3da;
-    margin-bottom: 20px;
-}
-
-.about-description {
-    font-size: 1.2rem;
-    line-height: 1.8;
-    margin-bottom: 20px;
-    color: #f8f9fa;
-}
-
-.about-quote {
-    font-size: 1rem;
+    background: linear-gradient(135deg, #1e293b, #334155); /* Dark blue gradient */
+    color: #e5e7eb; /* Soft white */
+    text-align: left;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  /* Content Area */
+  .about-content {
+    max-width: 800px;
+    padding: 30px;
+    border-radius: 12px;
+    background: #1f2937; /* Deep slate */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); /* Subtle shadow */
+  }
+  
+  /* Title */
+  .about-title {
+    font-size: 2.8em;
     font-weight: 700;
-    color: #f79d65;
+    margin-bottom: 15px;
+    color: #ffffff; /* Vibrant blue */
+  }
+  
+  /* Tagline */
+  .about-tagline {
+    font-size: 1.3em;
+    font-style: italic;
+    margin-bottom: 25px;
+    color: #94a3b8; /* Muted gray-blue */
+  }
+  
+  /* Description */
+  .about-description {
+    font-size: 1.2em;
+    line-height: 1.8;
+    margin-bottom: 25px;
+    color: #cbd5e1; /* Light slate */
+  }
+  
+  /* Quote */
+  .about-quote {
+    font-size: 1.3em;
+    font-style: italic;
+    color: #7dd3fc; /* Soft cyan */
+    border-left: 4px solid #60a5fa; /* Match title color */
+    padding-left: 15px;
     margin-top: 20px;
-}
+  }
+  
