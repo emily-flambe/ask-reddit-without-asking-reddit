@@ -162,7 +162,7 @@ def ask_reddit():
         logging.info(f"Generating the query will need {generate_query_tokens} and cost ${generate_query_cost:.4f}")
         
         # Generate reddit query params        
-        query_params = ai_handler.generate_query_params(search_term, subreddit)
+        query_params = ai_handler.generate_query_params(messages_to_generate_query)
         logging.info(f"Updated query params using AI fanciness: {query_params}")
 
         total_cost += generate_query_cost
