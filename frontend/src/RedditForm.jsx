@@ -12,7 +12,8 @@ function RedditForm() {
     const [posts, setPosts] = useState([]);
     const [reddit_api_params, setRedditAPIParams] = useState({});
     const [totalCost, setTotalCost] = useState(false);
-    const [loading, setLoading] = useState(false); // New state for loading
+    const [loading, setLoading] = useState(false);
+    const [expandedPosts, setExpandedPosts] = useState({});
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,7 +41,7 @@ function RedditForm() {
                 setRedditAPIParams(response.data.reddit_api_params);
                 setTotalCost(response.data.total_cost);
             }
-        }  catch (err) {
+        } catch (err) {
             console.error(err);
             // Check for server error response
             if (err.response && err.response.data && err.response.data.message) {
@@ -55,10 +56,15 @@ function RedditForm() {
 
     const truncateText = (text, wordLimit) => {
         const words = text.split(" ");
-        if (words.length > wordLimit) {
-            return words.slice(0, wordLimit).join(" ") + "...";
-        }
-        return text;
+        const truncated = words.length > wordLimit ? words.slice(0, wordLimit).join(" ") + "..." : text;
+        return { truncated, wordCount: words.length };
+    };
+
+    const toggleExpand = (index) => {
+        setExpandedPosts((prev) => ({
+            ...prev,
+            [index]: !prev[index], // Toggle the expand state for the specific post
+        }));
     };
 
     return (
@@ -146,7 +152,10 @@ function RedditForm() {
                     <h2>Reddit Posts:</h2>
                     <br />
                     <div>
-                        {posts.map((post, index) => (
+                    {posts.map((post, index) => {
+                        const { truncated, wordCount } = truncateText(post.text, 50);
+
+                        return (
                             <div key={index} className="mb-4">
                                 <a
                                     href={post.url}
@@ -157,11 +166,24 @@ function RedditForm() {
                                     {post.title}
                                 </a>
                                 <p className="mt-2 text-gray-700">
-                                    {truncateText(post.text, 50)}
+                                    {expandedPosts[index] ? post.text : truncated} {/* Use truncated text */}
                                 </p>
+                                {/* Only show the Expand/Collapse button if the number of words exceeds the limit */}
+                                {wordCount > 50 && (
+                                    <>
+                                        <button
+                                            onClick={() => toggleExpand(index)} // Toggle expand/collapse
+                                            className="expand-button"
+                                        >
+                                            {expandedPosts[index] ? 'Collapse' : 'Expand'}
+                                        </button>
+                                        <br /> {/* Add a line break here */}
+                                    </>
+                                )}
                                 <br />
                             </div>
-                        ))}
+                        );
+                    })}
                     </div>
                 </div>
             )}
