@@ -14,7 +14,7 @@ function Layout() {
                         <Link to="/">About</Link>
                     </li>
                     <li>
-                        <Link to="/reddit-form">Reddit Form</Link>
+                        <Link to="/reddit-form">Ask Reddit</Link>
                     </li>
                 </ul>
             </nav>

@@ -124,13 +124,14 @@ function RedditForm() {
             </form>
             {loading && <p className="loading-message">Loading...</p>}
             {error && <p className="error-message">{error}</p>}
+            {reddit_api_params && Object.keys(reddit_api_params).length > 0 && (
+                <div className="query-params-box">
+                    <h3>Query Parameters Used:</h3>
+                    <pre>{JSON.stringify(reddit_api_params, null, 2)}</pre>
+                </div>
+            )}
             {summary && (
                 <div className="summary-box">
-                    <br />
-                    <h3>Query Parameters Used:</h3>
-                    <div className="query-params-box">
-                        <pre>{JSON.stringify(reddit_api_params, null, 2)}</pre>
-                    </div>
                     <br />
                     {totalCost > 0 && ( // Conditionally display cost if totalCost is greater than zero
                         <>
@@ -142,7 +143,7 @@ function RedditForm() {
                     <h2>Summary:</h2>
                     <p>{summary}</p>
                     <br />
-                    <h3>Posts included in summary:</h3>
+                    <h2>Reddit Posts:</h2>
                     <br />
                     <div>
                         {posts.map((post, index) => (
