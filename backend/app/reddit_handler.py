@@ -108,8 +108,11 @@ class RedditHandler:
             for post in posts
             if "data" in post  # Ensure 'data' key exists
             and post["data"].get("score", 0) >= 5
+            and len(re.sub(r"http\S+", "", post["data"].get("selftext", ""))) > 10
             and len(re.sub(r"http\S+", "", post["data"].get("all_text", ""))) > 10
         ]
+
+        logging.info(filtered_posts)
 
         return sorted(filtered_posts, key=lambda x: x["score"], reverse=True)[:limit]
 
@@ -117,9 +120,6 @@ class RedditHandler:
         """Save filtered Reddit posts to the database."""
         for post in posts:
             post = post["data"]
-            # Truncate title and text to first 100 characters
-            post["title"] = post["title"][:100]
-            post["selftext"] = post["selftext"][:100] if post["selftext"] else ""
             if not RedditPost.query.filter_by(reddit_id=post["id"]).first():
                 new_post = RedditPost(
                     title=post["title"],

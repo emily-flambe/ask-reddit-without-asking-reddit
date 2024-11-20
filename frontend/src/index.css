@@ -241,3 +241,15 @@ button:focus-visible {
   padding-left: 15px;
   margin-top: 20px;
 }
+
+/* Expand Button */
+.expand-button {
+  color: #ffffff; /* White */
+  background-color: #22193b;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.7em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
