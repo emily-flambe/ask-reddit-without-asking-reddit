@@ -182,7 +182,7 @@ def ask_reddit():
             jsonify(
                 {
                     "status": "fail",
-                    "message": "No relevant posts found. Try asking a different question.",
+                    "message": "No relevant posts found. Try revising your search parameters, or give up lol",
                 }
             ),
             404,
@@ -204,7 +204,7 @@ def ask_reddit():
         total_cost += summary_cost
 
     else:
-        summary = None
+        summary = "No summary generated. So frugal, wow."
 
     return (
         jsonify(
