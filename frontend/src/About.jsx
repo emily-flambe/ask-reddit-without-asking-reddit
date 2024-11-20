@@ -1,26 +1,54 @@
-import React from "react";
-import "./About.css"; // Include the CSS file for styles
+import React from 'react';
+import { Box, Typography, Paper } from '@mui/material';
 
-function About() {
-    return (
-        <div className="about-container">
-            <div className="about-content">
-                <h1 className="about-title">Emily REDACTED</h1>
-                <p className="about-tagline">
-                    Data Engineer. Innovator. Dreamer.
-                </p>
-                <p className="about-description">
-                    A woman of intellect and ambition, Emily strides through life with a fierce determination to make her mark. 
-                    Her code is a symphony of logic and elegance, her mind a forge of ingenious solutions, and her presence 
-                    commands respect and admiration in equal measure. She wields her skills like an artist, crafting 
-                    data into stories that empower and inspire. To know her is to witness excellence redefined.
-                </p>
-                <p className="about-quote">
-                    "She doesn’t just walk into a room; she dominates it. The kind of woman you don’t forget." 
-                </p>
-            </div>
-        </div>
-    );
-}
+const About = () => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1e293b, #334155)',
+        color: 'text.primary',
+        p: 2,
+      }}
+    >
+      <Paper
+        sx={{
+          maxWidth: 800,
+          p: 4,
+          borderRadius: 2,
+          boxShadow: 3,
+          backgroundColor: 'background.paper',
+        }}
+      >
+        <Typography variant="h1" gutterBottom color="text.primary">
+          About Us
+        </Typography>
+        <Typography variant="h2" gutterBottom color="secondary">
+          Our Mission and Values
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          We are committed to providing the best services to our customers.
+          Our dedication to excellence and passion for innovation sets us apart.
+        </Typography>
+        <Typography
+          variant="h2"
+          sx={{
+            fontStyle: 'italic',
+            borderLeft: 4,
+            borderColor: 'primary.main',
+            pl: 2,
+            mt: 4,
+          }}
+          color="primary"
+        >
+          "Quality is never an accident. It is always the result of intelligent effort."
+        </Typography>
+      </Paper>
+    </Box>
+  );
+};
 
 export default About;
