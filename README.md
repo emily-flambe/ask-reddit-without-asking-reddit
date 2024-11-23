@@ -4,6 +4,24 @@ This is a web application that uses the power of (so-called) "Artificial Intelli
 
 If your goal is to actually find answers to questions using Reddit, you are better off just doing a Google search. But this web app is a moderately cute product of Resume Driven Development (guilty as charged), and it has a frontend and a backend and features and stuff. I might add more things to it later (see the Fantasy Land section below).
 
+# Screenshots
+
+<details>
+<summary>(Click to expand - the images are large and intensely beautiful)</summary>
+
+Sometimes, the app basically does what it's supposed to do:
+
+![Gleba summary](screenshots/gleba1.png)
+
+![Gleba posts](screenshots/gleba2.png)
+
+And sometimes the results are astoundingly off-base. I can't believe I spent $0.01 on this:
+
+![smooching is easy and fun](screenshots/smooch.png)
+
+</details>
+
+
 # Requirements
 
 This app requires credentials to authenticate to the Reddit API and the OpenAI API. Reddit authentication uses OAuth 2.0, which you can learn more about [here](https://github.com/reddit-archive/reddit/wiki/OAuth2). OpenAI authentication uses an API key, which you can obtain by signing up for an account on the OpenAI website.
@@ -78,7 +96,7 @@ Get email digest of new posts relating to a topic and/or within a specific subre
 
 FUN BONUS CONTENT: Github Copilot is losing it.
 
-![alt text](image.png)
+![helpful suggestion](screenshots/copilot.png)
 
 ## Reddit Scraper
 
