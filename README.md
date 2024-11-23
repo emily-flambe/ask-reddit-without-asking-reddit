@@ -1,118 +1,85 @@
-# reddit-data
+# Ask Reddit (Without Asking Reddit)
 
-This is a web application that collects data from the Reddit API and does fun things with it.
+This is a web application that uses the power of (so-called) "Artificial Intelligence" (dubious!) to query Reddit and summarize the content of posts in order to "answer" questions.
 
-# How to run locally
+If your goal is to actually find answers to questions using Reddit, you are better off just doing a Google search. But this web app is a moderately cute product of Resume Driven Development (guilty as charged), and it has a frontend and a backend and features and stuff. I might add more things to it later (see the Fantasy Land section below).
+
+# Requirements
+
+This app requires credentials to authenticate to the Reddit API and the OpenAI API. Reddit authentication uses OAuth 2.0, which you can learn more about [here](https://github.com/reddit-archive/reddit/wiki/OAuth2). OpenAI authentication uses an API key, which you can obtain by signing up for an account on the OpenAI website.
+
+Run `make setup-env` to create `backend/.env` file, which will contain secrets and other configs. Replace the default values when prompted, or just go modify the .env file later, obviously.
+
 
 ## Docker
 
-This app uses Vite, which has a known issue with installing Rollup. To work around this, we need to run these two commands in order to start the app:
-
-```shell
-docker compose run frontend npm i
-docker-compose up --build
-```
-
-But fear not! The friendly Makefile lets you do this in one command:
+This app is designed to be run in Docker. To start the app, fire up Docker and then run:
 
 ```shell
 make build
 ```
 
-TODO: Add a Makefile command to prompt the user to setup environment variables (including API keys for integrations like OpenAI).
+Wow that was so easy! Love me a good Makefile. But what is `make build` actually doing? It is running these commands:
+  
+```shell
+docker compose run frontend npm i
+docker-compose up --build
+```
+
+Why all the MADNESS? This app uses Vite, which has a known issue with installing Rollup. The workaround for this is to run `npm i` in the frontend directory before starting the app. I don't make the rules.
+
 
 ## Without Docker
 
-Don't feel like running the app in Docker? I mean, I guess that's fine. It can be useful for debugging. Here's how you can run the app without Docker.
+It can be useful to run parts of the app outside of Docker for development. Here's how you can run the app without Docker.
 
-Start the backend:
+Start the backend in a virtual environment.
 
 ```shell
 cd backend
 source .env
+python3 -m venv .venv
 source .venv/bin/activate
 flask run
 ```
 
-Start the frontend.
+To start the frontend:
 
 ```shell
 cd frontend
 npm run dev
 ```
 
-# Authentication to Reddit API (OAuth2)
-
-```shell
-
-source .env
-
-# fetch access token
-response=$(curl -X POST -d "grant_type=password&username=${REDDIT_USERNAME}&password=${REDDIT_PASSWORD}" --user "${OAUTH_CLIENT_ID}:${OAUTH_SECRET}" https://www.reddit.com/api/v1/access_token)
-
-# Extract values using jq
-ACCESS_TOKEN=$(echo "$response" | jq -r '.access_token')
-EXPIRES_IN=$(echo "$response" | jq -r '.expires_in')
-
-# Print values to verify
-echo "Access Token: $access_token"
-echo "Expires In: $expires_in"
-```
-
-# Example Request
-
-```shell
-curl -X GET "https://oauth.reddit.com/api/v1/me" \
-     -H "Authorization: bearer ${ACCESS_TOKEN}" \
-     -H "User-Agent: ChangeMeClient/0.1 by ${REDDIT_USERNAME}"
-```
-
-# OAuth2 for web app
-
-- Obtain an access token from:  https://www.reddit.com/api/v1/authorize?client_id=9pm_xn3RqULPQedre524nQ&response_type=code&state=random&redirect_uri=https://www.google.com&duration=permanent&scope=identity -- hopefully only need to do this once in order to obtain a refresh token.
-- Obtain the refresh token:
-
-```shell
-CLIENT_ID=foo
-CLIENT_SECRET=bar
-ACCESS_CODE=yeet
-
-curl -X POST https://www.reddit.com/api/v1/access_token \
-  -u "${CLIENT_ID}:${CLIENT_SECRET}" \
-  -d "grant_type=authorization_code" \
-  -d "code=${ACCESS_CODE}" \
-  -d "redirect_uri=https://www.google.com" \
-  -H "User-Agent: YourAppName/1.0"
-```
-
-
 # Fantasy Land 
 
-I should make these into Github issues or something lol
+Here's a smattering of ideas I have for new features or tweaks to add to this project. It's not really that serious, but could be fun to play with some of these:
 
+- [ ] Set up a local LLM with ollama
+- [ ] Enable app to be run with ollama OR with OpenAI API based on config
 - [ ] Add a button enabling the user to fetch more posts to incorporate into the summary
 - [ ] Add a text box for the user to ask follow up questions to the AI
 - [ ] Even Smarter Search: Some way of executing multiple queries and combining the results to answer a question
 - [ ] Group the top posts by topic
+- [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
+- [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)
 - [ ] Add a scheduler to collect data at regular intervals
 - [ ] Add more features to the data collection (e.g. collect comments, more metadata)
 - [ ] Add data analysis and visualization
-- [ ] Set up my own LLM with ollama
-- [ ] Enable app to be run with ollama OR with OpenAI API based on config
-- [ ] Add a feature that fetches posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post (This could be an entirely different project: Reddit Image Search)
-- [ ] Add user management and enable a logged in user to save queries and results (how crazy would it be to implement google auth?)
-- [ ] Use the Pushshift API to enable including comments in search results (Reddit API only supports searching top-level posts)
 
 Some additional ideas for larger spin-off projects:
 
-### Reddit Image Search
+## Reddit Image Search
 
-Something like Google Image Search, but specifically using Reddit posts?
+Something like Google Image Search, but specifically using Reddit posts? Fetch posts with screenshots and displays those screenshots in the UI, with captions based on the content of the post. Or something.
 
-### Reddit Topic Subscriber
+## Reddit Topic Subscriber
 
-Get email digest of new posts relating to a topic and/or within a specific subreddit
+Get email digest of new posts relating to a topic and/or within a specific subreddit. Maybe you want to see new posts about Taylor Swift regardless of what subreddit they are in. Or maybe you only want to see new posts in the /r/Factoriohno subreddit if they have at least 10 karma.
 
-### Reddit Scraper
+FUN BONUS CONTENT: Github Copilot is losing it.
 
-Set up some search params, hit "go", and let the app scrape Reddit for you, running at regular intervals to collect new relevant posts and add them to a database. (Could this involve spinning up k8s pods?)
+![alt text](image.png)
+
+## Reddit Scraper
+
+Set up some search params, enter a CRON schedule, hit "go", and let the app scrape Reddit for you, running at regular intervals to collect new relevant posts and add them to a database. Optionally enable files to be written to local database or to a cloud storage service (S3, GCS).
